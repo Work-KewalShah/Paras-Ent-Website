@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ProductShowcaseImage } from '@/components/ui/ProductShowcaseImage';
 
 export interface ResolvedProduct {
@@ -19,6 +20,7 @@ export interface ProductShowcaseProps {
 
 export function ProductShowcase({ products }: ProductShowcaseProps) {
   const { t } = useTranslation();
+  const shouldReduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -77,30 +79,40 @@ export function ProductShowcase({ products }: ProductShowcaseProps) {
 
       {/* Right column: sticky detail panel */}
       <div className="sticky top-[104px] self-start">
-        <div className="bg-[var(--color-bg-card,#141414)] rounded-lg border border-[var(--color-border-card,#222)] p-8">
-          <h3 className="font-display text-h2 uppercase tracking-tight text-accent mb-2">
-            {activeProduct.title}
-          </h3>
-          <p className="text-text-secondary text-body mb-6">{activeProduct.tagline}</p>
+        <div className="bg-[var(--color-bg-card,#141414)] rounded-lg border border-[var(--color-border-card,#222)] p-8 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeProduct.slug}
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+              transition={{ duration: shouldReduceMotion ? 0.01 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <h3 className="font-display text-h2 uppercase tracking-tight text-accent mb-2">
+                {activeProduct.title}
+              </h3>
+              <p className="text-text-secondary text-body mb-6">{activeProduct.tagline}</p>
 
-          <ul className="list-disc list-inside text-text-secondary text-small space-y-1 mb-6">
-            {activeProduct.features.map((feature, i) => (
-              <li key={i}>{feature}</li>
-            ))}
-          </ul>
-
-          {activeProduct.useCases && activeProduct.useCases.length > 0 && (
-            <div className="pt-4 border-t border-[var(--color-border-subtle,#1a1a1a)]">
-              <h4 className="font-medium text-text-primary text-small mb-2">
-                {t('products.useCasesHeading')}
-              </h4>
-              <ul className="list-disc list-inside text-text-secondary text-small space-y-1">
-                {activeProduct.useCases.map((useCase, i) => (
-                  <li key={i}>{useCase}</li>
+              <ul className="list-disc list-inside text-text-secondary text-small space-y-1 mb-6">
+                {activeProduct.features.map((feature, i) => (
+                  <li key={i}>{feature}</li>
                 ))}
               </ul>
-            </div>
-          )}
+
+              {activeProduct.useCases && activeProduct.useCases.length > 0 && (
+                <div className="pt-4 border-t border-[var(--color-border-subtle,#1a1a1a)]">
+                  <h4 className="font-medium text-text-primary text-small mb-2">
+                    {t('products.useCasesHeading')}
+                  </h4>
+                  <ul className="list-disc list-inside text-text-secondary text-small space-y-1">
+                    {activeProduct.useCases.map((useCase, i) => (
+                      <li key={i}>{useCase}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

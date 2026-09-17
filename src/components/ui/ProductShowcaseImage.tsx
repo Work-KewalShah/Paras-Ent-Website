@@ -34,7 +34,7 @@ export const ProductShowcaseImage = React.forwardRef<HTMLDivElement, ProductShow
           onClick={() => setIsOpen(true)}
           className={cn(
             'relative w-full max-w-md aspect-square overflow-hidden rounded-md border border-[var(--color-border,#2A2A2A)] bg-[var(--color-bg-elevated,#1C1C1C)] focus:outline-none focus:ring-2 focus:ring-[var(--color-border-accent,rgba(45,212,232,0.4))] focus:ring-offset-2 focus:ring-offset-bg-primary',
-            'transition-all duration-400',
+            'transition-all duration-400 motion-reduce:scale-100 motion-reduce:transition-opacity',
             isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'
           )}
           aria-label={t('products.viewFullImageAriaLabel', { title })}

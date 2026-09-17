@@ -162,3 +162,48 @@
   feature list. This is not a bug or incomplete translation — it's a deliberate content
   choice. Do not "fix" this to match English array length in any future session without
   checking with Kewal first.
+
+## Session 11: Discovered Bug (Out of Scope, Confirmed) — Sitewide Hydration Mismatch for `prefers-reduced-motion` Users
+- **Discovery context:** Found while verifying Increment 3's Framer Motion crossfade
+  (`ProductShowcase.tsx`) under a real emulated `prefers-reduced-motion: reduce` browser
+  setting. Reproduced against the dev server with full (non-minified) React error output
+  to confirm scope before writing this entry — this is not speculation, it's a captured
+  stack trace.
+- **Bug:** Every component that calls Framer Motion's `useReducedMotion()` and branches
+  its animation props on the result (`shouldReduceMotion ? {...} : {...}`) hydration-
+  mismatches for any visitor who already has OS-level "reduce motion" enabled *before*
+  the page loads. Root cause: `useReducedMotion()` reads `window.matchMedia` synchronously
+  on the very first client render; Next.js SSR has no `window` at all and always renders
+  assuming no preference (the non-reduced, animated variant). A real visitor whose browser
+  already reports `true` on first paint gets a client render that disagrees with the
+  server-rendered HTML, and React logs "Hydration failed... this tree will be regenerated
+  on the client" and discards/re-renders the affected subtree.
+- **Confirmed scope (from an actual captured hydration diff, not inference)**: `Navbar.tsx`
+  (`motion.header`'s scroll-based padding/background/blur styles), `Hero.tsx` (the scan-line
+  effect and the entire hero-load stagger sequence — eyebrow/headline/subheadline/CTAs/
+  supporting line), `Reveal.tsx` (used by TrustPillars, CaseStudies, B2BSection, ProductGrid
+  section intros), `StaggerContainer`/`StaggerItem` (TrustPillars badges, ProductGrid cards),
+  and `Partnerships.tsx`'s marquee-vs-static-fallback branch. This is not a short list — it's
+  effectively every scroll/load animation on the page. `ProductShowcase.tsx`'s new crossfade
+  (built this session) exhibits the identical pattern and appeared in the same diff, but it
+  *inherited* the site's existing approach rather than introducing a new failure mode.
+- **Practical impact**: end state is still functionally correct after React's automatic
+  recovery (the "tree will be regenerated" — verified: `ProductShowcase`'s reduced-motion
+  transition settles to the correct instant/no-translate state), but every affected visitor
+  gets a console error and a wasted extra client-side render pass on first load, sitewide.
+  This is a real, user-facing correctness gap for an actual accessibility-conscious user
+  segment (anyone with OS-level reduce-motion on), not just console noise.
+- **Not fixed here:** Confirmed sitewide and pre-existing (predates Session 11 entirely —
+  Navbar/Hero/Reveal were never touched this session). Fixing requires either gating every
+  `useReducedMotion()`-branched animation so its *initial* render always matches what SSR
+  produces (e.g. only applying the reduced-motion branch after a mount-gated flag flips, or
+  switching to a CSS-`@media (prefers-reduced-motion)`-driven approach for static states),
+  or auditing and updating every one of the affected components individually — a dedicated
+  session's worth of work across many files, not an Increment 3 fix.
+- **What Increment 3 did fix, within its own scope:** `ProductShowcase.tsx`'s crossfade now
+  uses `duration: shouldReduceMotion ? 0.01 : 0.3` (matching `Hero.tsx`'s exact existing
+  `0.01`-for-reduced-motion convention, not just omitting the y-translate), and
+  `ProductShowcaseImage.tsx`'s active/inactive scale treatment gained
+  `motion-reduce:scale-100` (matching `ProductCard.tsx`'s existing
+  `motion-reduce:hover:scale-100` convention) so only opacity changes under reduced motion,
+  never scale.
