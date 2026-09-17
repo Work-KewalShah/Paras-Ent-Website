@@ -63,7 +63,7 @@ export default function Hero() {
       };
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center pt-36 lg:pt-0 overflow-hidden">
+    <section className="relative min-h-[100dvh] flex items-center pt-36 lg:pt-[104px] overflow-hidden">
       {/* Scan Line Effect */}
       <motion.div
         variants={scanLineVariants}

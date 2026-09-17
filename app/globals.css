@@ -19,18 +19,6 @@
   --color-border: #2A2A2A;
   --color-border-accent: rgba(45, 212, 232, 0.4);
 
-  /* === Fonts === */
-  --font-display: "Anton", sans-serif;
-  --font-body: "Inter", sans-serif;
-
-  /* === Type Scale (desktop) === */
-  --text-hero: 72px;
-  --text-h1: 48px;
-  --text-h2: 32px;
-  --text-h3: 20px;
-  --text-body: 16px;
-  --text-small: 14px;
-
   /* === Border Radius === */
   --radius-sm: 8px;
   --radius-md: 16px;
@@ -39,6 +27,23 @@
   /* === Shadows & Glow === */
   --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
   --shadow-glow-accent: 0 0 24px rgba(45, 212, 232, 0.25);
+}
+
+/* Fonts + type scale: plain (non-inline) @theme so Tailwind emits
+   var()-referencing utilities (e.g. .text-hero{font-size:var(--text-hero)})
+   instead of baking the literal value in. Required for the mobile media
+   query below and the Hindi font override to actually take effect — an
+   `inline` theme value cannot be overridden at runtime. */
+@theme {
+  --font-display: "Anton", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --text-hero: 72px;
+  --text-h1: 48px;
+  --text-h2: 32px;
+  --text-h3: 20px;
+  --text-body: 16px;
+  --text-small: 14px;
 }
 
 /* Devanagari fallback: appended, not prepended, so per-glyph fallback keeps
