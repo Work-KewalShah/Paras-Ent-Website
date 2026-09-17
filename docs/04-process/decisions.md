@@ -153,3 +153,12 @@
   restructuring the `@theme` block (or an equivalent mechanism that preserves a `var()`
   reference through to the generated utilities) and re-verifying every affected component's
   mobile layout — a separate, dedicated session's worth of work, not a one-line change.
+
+## Session 10: Intentional Hindi Array-Length Mismatch (Not a Bug)
+- **Decision:** The Hindi translations for `products.items.cctv.features` and
+  `products.items.burglarAlarms.features` intentionally have fewer/differently-grouped
+  items than the English versions — Kewal reviewed and decided not to translate "IP, HD,
+  PTZ, WiFi cameras" (CCTV) or "GSM, IP, Fire panels" (Burglar Alarms) into the Hindi
+  feature list. This is not a bug or incomplete translation — it's a deliberate content
+  choice. Do not "fix" this to match English array length in any future session without
+  checking with Kewal first.
