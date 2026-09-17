@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ export const Carousel: React.FC<CarouselProps> = ({
   easing = [0.16, 1, 0.3, 1],
   ariaLabel = 'Hero image carousel',
 }) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hovering, setHovering] = useState(false);
   const shouldReduceMotion = useReducedMotion();
@@ -133,7 +135,7 @@ export const Carousel: React.FC<CarouselProps> = ({
       <div
         className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-5 z-20"
         role="tablist"
-        aria-label="Carousel slides"
+        aria-label={t('carousel.dotsAriaLabel')}
       >
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
@@ -148,7 +150,7 @@ export const Carousel: React.FC<CarouselProps> = ({
                 'relative w-3 h-3 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent,#00E599)] transition-colors',
                 isActive ? 'bg-transparent' : 'bg-transparent'
               )}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={t('carousel.goToSlideAriaLabel', { number: index + 1 })}
               aria-selected={isActive}
               role="tab"
             >

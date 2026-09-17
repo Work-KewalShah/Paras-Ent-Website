@@ -1,11 +1,13 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { siteConfig } from '@/lib/content/site-config';
 import { heroSlides } from '@/lib/content/hero';
 import { Carousel } from '@/components/ui/Carousel';
 
 export default function Hero() {
+  const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
 
   const containerVariants = {
@@ -88,7 +90,7 @@ export default function Hero() {
               variants={itemVariants}
               className="text-accent text-small uppercase tracking-widest mb-2"
             >
-              SINCE 1999
+              {t('hero.eyebrow')}
             </motion.p>
 
             {/* Headline */}
@@ -96,7 +98,7 @@ export default function Hero() {
               variants={itemVariants}
               className="font-display text-hero uppercase tracking-tight leading-none mb-6"
             >
-              Protect What Matters
+              {t('hero.headline')}
             </motion.h1>
 
             {/* Subheadline */}
@@ -104,8 +106,7 @@ export default function Hero() {
               variants={itemVariants}
               className="text-text-secondary text-body leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0"
             >
-              25+ years of trusted security and service — protecting homes,
-              businesses, and institutions across Bilaspur.
+              {t('hero.subheadline')}
             </motion.p>
 
             {/* CTAs */}
@@ -117,13 +118,13 @@ export default function Hero() {
                 href="#contact"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-radius-sm bg-accent text-bg-primary font-medium text-small hover:bg-accent-hover transition-colors min-h-[44px]"
               >
-                Get Free Site Survey
+                {t('common.ctaSiteSurvey')}
               </a>
               <a
                 href={`tel:${siteConfig.phone}`}
                 className="inline-flex items-center justify-center px-6 py-3 rounded-radius-sm border-2 border-accent text-accent font-medium text-small hover:bg-accent hover:text-bg-primary transition-colors min-h-[44px]"
               >
-                Call Now: {siteConfig.phoneFormatted}
+                {t('common.callNowPrefix')} {siteConfig.phoneFormatted}
               </a>
             </motion.div>
 
@@ -132,13 +133,13 @@ export default function Hero() {
               variants={itemVariants}
               className="text-text-muted text-small"
             >
-              8,000+ installations across Bilaspur and nearby areas
+              {t('hero.supportingLine')}
             </motion.p>
           </div>
 
           {/* Hero Visual Carousel */}
           <div className="relative aspect-[4/3] lg:aspect-square rounded-radius-lg overflow-hidden bg-bg-secondary border border-border">
-            <Carousel slides={heroSlides} ariaLabel="Hero visual carousel" />
+            <Carousel slides={heroSlides} ariaLabel={t('hero.carouselAriaLabel')} />
           </div>
         </motion.div>
       </div>

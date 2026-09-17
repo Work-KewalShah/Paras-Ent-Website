@@ -6,6 +6,7 @@ export interface B2BContent {
 }
 
 export interface Product {
+  slug: string;
   title: string;
   tagline: string;
   features: string[];

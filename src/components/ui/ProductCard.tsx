@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Card } from './Card';
 import { ImageModal } from './ImageModal';
@@ -18,6 +19,7 @@ export interface ProductCardProps {
 
 export const ProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
   ({ title, tagline, features, useCases, image, className }, ref) => {
+    const { t } = useTranslation();
     const shouldReduceMotion = useReducedMotion();
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -43,7 +45,7 @@ export const ProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
               "hover:scale-[1.15]",
               "motion-reduce:hover:scale-100"
             )}
-          aria-label={`View full image of ${title}`}
+          aria-label={t('products.viewFullImageAriaLabel', { title })}
         >
           <Image
             src={`/images/${image}`}
@@ -54,7 +56,7 @@ export const ProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
             priority={false}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
-          <span className="absolute bottom-2 right-2 text-[10px] text-white bg-black/50 px-2 py-0.5 rounded-full">Click to expand</span>
+          <span className="absolute bottom-2 right-2 text-[10px] text-white bg-black/50 px-2 py-0.5 rounded-full">{t('products.clickToExpand')}</span>
         </button>
 
         {/* Content */}
@@ -72,7 +74,7 @@ export const ProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
 
           {useCases && useCases.length > 0 && (
             <div className="mt-4 pt-4 border-t border-[var(--color-border-subtle,#1a1a1a)]">
-              <h4 className="font-medium text-text-primary text-small mb-2">Use cases:</h4>
+              <h4 className="font-medium text-text-primary text-small mb-2">{t('products.useCasesHeading')}</h4>
               <ul className="list-disc list-inside text-text-secondary text-small space-y-1">
                 {useCases.map((useCase, index) => (
                   <li key={index}>{useCase}</li>

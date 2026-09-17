@@ -2,6 +2,7 @@ import { Product } from '@/types/content';
 
 export const products: Product[] = [
   {
+    slug: 'cctv',
     title: 'CCTV Cameras',
     tagline: 'Eyes in Every Corner',
     features: [
@@ -15,6 +16,7 @@ export const products: Product[] = [
     useCases: ['Homes', 'retail stores', 'warehouses', 'offices', 'educational institutions'],
   },
   {
+    slug: 'ptz',
     title: 'PTZ Camera',
     tagline: '360° Coverage, Total Control',
     features: [
@@ -26,6 +28,7 @@ export const products: Product[] = [
     useCases: ['Parking areas', 'large campuses', 'warehouses', 'outdoor perimeters'],
   },
   {
+    slug: 'wifiCamera',
     title: 'WiFi Camera',
     tagline: 'Wire-Free, Worry-Free',
     features: [
@@ -37,6 +40,7 @@ export const products: Product[] = [
     useCases: ['Homes', 'small offices', 'shops', 'quick-deploy setups'],
   },
   {
+    slug: 'videoDoorPhone',
     title: 'Video Door Phone',
     tagline: 'See Who\'s at the Door, Anywhere',
     features: [
@@ -48,6 +52,7 @@ export const products: Product[] = [
     useCases: ['Homes', 'apartments', 'gated communities', 'offices'],
   },
   {
+    slug: 'burglarAlarms',
     title: 'Burglar Alarms',
     tagline: 'Protection That Never Sleeps',
     features: [
@@ -58,6 +63,7 @@ export const products: Product[] = [
     useCases: ['Homes', 'warehouses', 'offices', 'industrial sites', 'retail stores'],
   },
   {
+    slug: 'pbx',
     title: 'PBX Systems',
     tagline: 'Efficient Communication for Every Scale',
     features: [
@@ -75,6 +81,7 @@ export const products: Product[] = [
     image: 'product-pbx.png',
   },
   {
+    slug: 'biometric',
     title: 'Biometric Access',
     tagline: 'Seamless Access, Maximum Security',
     features: [
@@ -91,6 +98,7 @@ export const products: Product[] = [
     image: 'product-biometric.png',
   },
   {
+    slug: 'networking',
     title: 'Networking',
     tagline: 'Connectivity Without Compromise',
     features: [
@@ -107,6 +115,7 @@ export const products: Product[] = [
     image: 'product-networking.png',
   },
   {
+    slug: 'audio',
     title: 'Audio Systems',
     tagline: 'Crystal-Clear Audio, Anywhere You Need',
     features: [
