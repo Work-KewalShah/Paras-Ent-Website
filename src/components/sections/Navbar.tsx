@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { siteConfig } from '@/lib/content/site-config';
 import { useScrollPosition } from '@/lib/hooks/useScrollPosition';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { cn } from '@/lib/utils';
 
 export default function Navbar() {
@@ -93,6 +94,7 @@ export default function Navbar() {
           >
             Get Free Site Survey
           </a>
+          <LanguageToggle />
         </div>
 
         {/* Mobile: Phone + Hamburger */}
@@ -160,6 +162,7 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
+              <LanguageToggle />
               <a
                 href="#contact"
                 onClick={() => setMobileMenuOpen(false)}
