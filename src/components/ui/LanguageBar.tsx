@@ -8,16 +8,16 @@ const FONT_SCALE_STEPS = ['85', '92.5', '100', '107.5', '115'];
 const DEFAULT_STEP_INDEX = 2;
 
 const TRACK_CLASSES =
-  'flex items-center gap-1 rounded-radius-sm bg-[var(--color-bg-secondary,#141414)] p-1';
+  'flex items-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-1';
 
 const INACTIVE_BUTTON_CLASSES =
-  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm bg-transparent text-text-muted hover:text-text-secondary transition-colors';
+  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm bg-transparent text-text-muted hover:text-text-secondary transition-colors';
 
 const ACTIVE_BUTTON_CLASSES =
-  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm bg-accent text-bg-primary font-semibold transition-colors';
+  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm bg-accent text-bg-primary font-semibold transition-colors';
 
 const DISABLED_BUTTON_CLASSES =
-  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm bg-transparent text-text-muted/40 cursor-not-allowed';
+  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm bg-transparent text-text-muted/40 cursor-not-allowed';
 
 export function LanguageBar() {
   const { i18n } = useTranslation();
