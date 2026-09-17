@@ -1,11 +1,13 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { contactInfo } from '@/lib/content/contact';
 import { siteConfig } from '@/lib/content/site-config';
 import { cn } from '@/lib/utils';
 
 export default function Footer() {
+  const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
 
   const containerVariants = {
@@ -44,29 +46,23 @@ export default function Footer() {
               PARAS ENTERPRISES
             </p>
             <p className="text-body leading-relaxed">
-              Let's Secure Your World with Reliability and Innovation
+              {t('common.brandTagline')}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
             <h3 className="font-medium text-text-primary mb-4">
-              Quick Links
+              {t('footer.quickLinksHeading')}
             </h3>
             <nav className="flex flex-col space-y-2">
-              {[
-                { label: 'Products', href: '#products' },
-                { label: 'Process', href: '#process' },
-                { label: 'Case Studies', href: '#case-studies' },
-                { label: 'Why Us', href: '#why-us' },
-                { label: 'Contact', href: '#contact' },
-              ].map((link) => (
+              {siteConfig.navLinks.map((link) => (
                 <a
-                  key={link.label}
+                  key={link.href}
                   href={link.href}
                   className="text-text-secondary hover:text-text-primary transition-colors"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </a>
               ))}
             </nav>
@@ -75,7 +71,7 @@ export default function Footer() {
           {/* Contact Info (Address + Phones) */}
           <div className="space-y-4">
             <h3 className="font-medium text-text-primary mb-4">
-              Contact Us
+              {t('footer.contactUsHeading')}
             </h3>
             <p className="text-text-secondary">
               {contactInfo.address}
@@ -84,7 +80,7 @@ export default function Footer() {
               {/* Inquiry Numbers */}
               <div className="space-y-2">
                 <p className="font-medium text-text-primary">
-                  Inquiry
+                  {t('contact.inquiryLabel')}
                 </p>
                 <div className="space-y-1">
                   <a
@@ -133,7 +129,7 @@ export default function Footer() {
               {/* Service Number */}
               <div className="space-y-2">
                 <p className="font-medium text-text-primary">
-                  Service
+                  {t('contact.serviceLabel')}
                 </p>
                 <a
                   href={`tel:${contactInfo.phoneService}`}
@@ -162,7 +158,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-8 pt-4 border-t border-border/20 text-center text-text-muted">
-          © {currentYear} Paras Enterprises. All rights reserved.
+          {t('footer.copyrightTemplate', { year: currentYear })}
         </div>
       </motion.div>
     </footer>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { siteConfig } from '@/lib/content/site-config';
 import { useScrollPosition } from '@/lib/hooks/useScrollPosition';
@@ -8,6 +9,7 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { cn } from '@/lib/utils';
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const scrollY = useScrollPosition();
   const shouldReduceMotion = useReducedMotion();
@@ -74,7 +76,7 @@ export default function Navbar() {
               href={link.href}
               className="text-text-secondary hover:text-text-primary transition-colors text-small"
             >
-              {link.label}
+              {t(link.labelKey)}
             </a>
           ))}
         </div>
@@ -92,7 +94,7 @@ export default function Navbar() {
             href="#contact"
             className="inline-flex items-center justify-center px-6 py-3 rounded-radius-sm bg-accent text-bg-primary font-medium text-small hover:bg-accent-hover transition-colors"
           >
-            Get Free Site Survey
+            {t('common.ctaSiteSurvey')}
           </a>
           <LanguageToggle />
         </div>
@@ -102,7 +104,7 @@ export default function Navbar() {
           <a
             href={`tel:${siteConfig.phone}`}
             className="flex-shrink-0 text-accent hover:text-accent-hover transition-colors text-small font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label={`Call ${siteConfig.phoneFormatted}`}
+            aria-label={`${t('common.callAriaLabelPrefix')} ${siteConfig.phoneFormatted}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2 text-accent flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
             <span className="whitespace-nowrap">{siteConfig.phoneFormatted}</span>
@@ -110,7 +112,7 @@ export default function Navbar() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center text-text-primary"
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileMenuOpen ? t('navbar.closeMenu') : t('navbar.openMenu')}
             aria-expanded={mobileMenuOpen}
           >
             <svg
@@ -159,7 +161,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-text-primary text-h1 font-display tracking-tight min-h-[44px] flex items-center justify-center"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </a>
               ))}
               <LanguageToggle />
@@ -168,7 +170,7 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="inline-flex items-center justify-center px-8 py-4 rounded-radius-sm bg-accent text-bg-primary font-medium min-h-[44px]"
               >
-                Get Free Site Survey
+                {t('common.ctaSiteSurvey')}
               </a>
             </nav>
           </motion.div>
