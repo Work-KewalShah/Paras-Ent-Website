@@ -1,178 +1,178 @@
 {
   "common": {
-    "ctaSiteSurvey": "Get Free Site Survey",
-    "callNowPrefix": "Call Now:",
-    "callAriaLabelPrefix": "Call",
-    "brandTagline": "Let's Secure Your World with Reliability and Innovation"
+    "ctaSiteSurvey": "फ्री साइट सर्वे पाएं",
+    "callNowPrefix": "अभी कॉल करें:",
+    "callAriaLabelPrefix": "कॉल करें",
+    "brandTagline": "आइए, भरोसे और नयी तकनीक के साथ आपकी दुनिया को सुरक्षित बनाएं"
   },
   "navbar": {
     "links": {
-      "products": "Products",
-      "process": "Process",
-      "caseStudies": "Case Studies",
-      "whyUs": "Why Us",
-      "contact": "Contact"
+      "products": "प्रोडक्ट्स",
+      "process": "प्रोसेस",
+      "caseStudies": "केस स्टडीज़",
+      "whyUs": "हमें क्यों चुनें",
+      "contact": "संपर्क करें"
     },
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "openMenu": "मेनू खोलें",
+    "closeMenu": "मेनू बंद करें"
   },
   "hero": {
-    "eyebrow": "SINCE 1999",
-    "headline": "Protect What Matters",
-    "subheadline": "25+ years of trusted security and service — protecting homes, businesses, and institutions across Bilaspur.",
-    "supportingLine": "8,000+ installations across Bilaspur and nearby areas",
-    "carouselAriaLabel": "Hero visual carousel"
+    "eyebrow": "1999 से",
+    "headline": "जो मायने रखता है, उसे सुरक्षित रखें",
+    "subheadline": "25+ सालों का भरोसेमंद सिक्योरिटी और सर्विस अनुभव — बिलासपुर भर के घरों, बिज़नेस और संस्थानों को सुरक्षित बनाते हुए।",
+    "supportingLine": "बिलासपुर और आसपास के इलाकों में 8,000+ इंस्टॉलेशन",
+    "carouselAriaLabel": "हीरो विज़ुअल कैरोसेल"
   },
   "carousel": {
-    "dotsAriaLabel": "Carousel slides",
-    "goToSlideAriaLabel": "Go to slide {{number}}"
+    "dotsAriaLabel": "कैरोसेल स्लाइड्स",
+    "goToSlideAriaLabel": "स्लाइड {{number}} पर जाएं"
   },
   "trustPillars": {
-    "headline": "25+ Years of Trust and Expertise",
+    "headline": "25+ सालों का भरोसा और अनुभव",
     "pillars": {
-      "security": { "title": "Security", "description": "Protecting people, property, and spaces" },
-      "innovation": { "title": "Innovation", "description": "Staying current with the latest technology" },
-      "service": { "title": "Service", "description": "Long-term, reliable customer relationships" }
+      "security": { "title": "सिक्योरिटी", "description": "लोगों, प्रॉपर्टी और जगहों की सुरक्षा" },
+      "innovation": { "title": "इनोवेशन", "description": "नई से नई टेक्नोलॉजी के साथ हमेशा अपडेट" },
+      "service": { "title": "सर्विस", "description": "लंबे समय तक चलने वाला, भरोसेमंद ग्राहक रिश्ता" }
     },
     "badges": {
-      "guarantee": { "title": "2-Year Replacement Guarantee", "tagline": "Peace of mind, always" },
-      "custom": { "title": "Custom Solutions for Every Space", "tagline": "Made for your space" },
-      "afterSales": { "title": "Brilliant After-Sales Service", "tagline": "Support that stays" },
-      "installations": { "title": "Fast, Effective Installations", "tagline": "Fast. Neat. Professional" }
+      "guarantee": { "title": "2 साल की रिप्लेसमेंट गारंटी", "tagline": "हमेशा निश्चिंत रहें" },
+      "custom": { "title": "हर जगह के लिए कस्टम सॉल्यूशन", "tagline": "आपकी जगह के हिसाब से बनाया गया" },
+      "afterSales": { "title": "बेहतरीन आफ्टर-सेल्स सर्विस", "tagline": "साथ निभाने वाला सपोर्ट" },
+      "installations": { "title": "तेज़ और असरदार इंस्टॉलेशन", "tagline": "तेज़। साफ-सुथरा। प्रोफेशनल" }
     }
   },
   "products": {
-    "headline": "A Complete Range of Security & Automation Solutions",
-    "subheadline": "Complete Security. Smart Living.",
-    "useCasesHeading": "Use cases:",
-    "clickToExpand": "Click to expand",
-    "viewFullImageAriaLabel": "View full image of {{title}}",
+    "headline": "सिक्योरिटी और ऑटोमेशन सॉल्यूशन की पूरी रेंज",
+    "subheadline": "पूरी सुरक्षा। स्मार्ट लाइफस्टाइल।",
+    "useCasesHeading": "कहां इस्तेमाल करें:",
+    "clickToExpand": "बड़ा देखने के लिए क्लिक करें",
+    "viewFullImageAriaLabel": "{{title}} की पूरी फोटो देखें",
     "items": {
       "cctv": {
-        "title": "CCTV Cameras",
-        "tagline": "Eyes in Every Corner",
-        "features": ["IP, HD, PTZ, WiFi cameras", "Night-vision color", "AI Enabled", "Audio Enabled", "Camera accessories"],
-        "useCases": ["Homes", "retail stores", "warehouses", "offices", "educational institutions"]
+        "title": "सीसीटीवी कैमरा",
+        "tagline": "हर कोने पर नज़र",
+        "features": ["नाइट-विज़न कलर", "AI इनेबल्ड", "ऑडियो इनेबल्ड", "कैमरा एक्सेसरीज़"],
+        "useCases": ["घर", "रिटेल स्टोर", "गोदाम", "ऑफिस", "स्कूल-कॉलेज"]
       },
       "ptz": {
-        "title": "PTZ Camera",
-        "tagline": "360° Coverage, Total Control",
-        "features": ["360° coverage", "mobile access", "45x zoom"],
-        "useCases": ["Parking areas", "large campuses", "warehouses", "outdoor perimeters"]
+        "title": "PTZ कैमरा",
+        "tagline": "360° कवरेज, पूरा कंट्रोल",
+        "features": ["360° कवरेज", "मोबाइल एक्सेस", "45x ज़ूम"],
+        "useCases": ["पार्किंग एरिया", "बड़े कैंपस", "गोदाम", "बाहरी बाउंड्री"]
       },
       "wifiCamera": {
-        "title": "WiFi Camera",
-        "tagline": "Wire-Free, Worry-Free",
-        "features": ["Wire-free installation", "mobile app access", "auto-tracking"],
-        "useCases": ["Homes", "small offices", "shops", "quick-deploy setups"]
+        "title": "WiFi कैमरा",
+        "tagline": "बिना तार, बिना टेंशन",
+        "features": ["बिना तार वाला इंस्टॉलेशन", "मोबाइल ऐप एक्सेस", "ऑटो-ट्रैकिंग"],
+        "useCases": ["घर", "छोटे ऑफिस", "दुकानें", "तुरंत लगाने वाले सेटअप"]
       },
       "videoDoorPhone": {
-        "title": "Video Door Phone",
-        "tagline": "See Who's at the Door, Anywhere",
-        "features": ["Smart alerts", "night vision", "remote unlock"],
-        "useCases": ["Homes", "apartments", "gated communities", "offices"]
+        "title": "वीडियो डोर फोन",
+        "tagline": "कहीं से भी देखें, दरवाज़े पर कौन है",
+        "features": ["स्मार्ट अलर्ट", "नाइट विज़न", "रिमोट अनलॉक"],
+        "useCases": ["घर", "अपार्टमेंट", "गेटेड कम्युनिटी", "ऑफिस"]
       },
       "burglarAlarms": {
-        "title": "Burglar Alarms",
-        "tagline": "Protection That Never Sleeps",
-        "features": ["GSM, IP, Fire panels", "Vibration, temperature, glass break, gas leak, magnetic contact, motion, smoke, and more"],
-        "useCases": ["Homes", "warehouses", "offices", "industrial sites", "retail stores"]
+        "title": "बर्गलर अलार्म",
+        "tagline": "सुरक्षा जो कभी नहीं सोती",
+        "features": ["वाइब्रेशन सेंसर", "टेम्परेचर सेंसर", "ग्लास ब्रेक सेंसर", "गैस लीक सेंसर", "मैग्नेटिक कॉन्टैक्ट सेंसर", "मोशन सेंसर", "स्मोक सेंसर (और भी कई)"],
+        "useCases": ["घर", "गोदाम", "ऑफिस", "फैक्ट्री", "रिटेल स्टोर"]
       },
       "pbx": {
-        "title": "PBX Systems",
-        "tagline": "Efficient Communication for Every Scale",
-        "features": ["Digital PBX", "IP PBX"],
-        "useCases": ["Residential societies", "Hotels", "Corporate offices", "Hostels and dormitories", "Educational institutions", "Hospitals"]
+        "title": "PBX सिस्टम",
+        "tagline": "हर स्तर के लिए बेहतर कम्युनिकेशन",
+        "features": ["डिजिटल PBX", "IP PBX"],
+        "useCases": ["रेजिडेंशियल सोसाइटी", "होटल", "कॉर्पोरेट ऑफिस", "हॉस्टल", "स्कूल-कॉलेज", "हॉस्पिटल"]
       },
       "biometric": {
-        "title": "Biometric Access",
-        "tagline": "Seamless Access, Maximum Security",
-        "features": ["Face", "Thumb", "RFID card"],
-        "useCases": ["Attendance", "Access control", "Electric doorlocks", "Boom barriers"]
+        "title": "बायोमेट्रिक एक्सेस",
+        "tagline": "आसान एक्सेस, पूरी सुरक्षा",
+        "features": ["फेस", "अंगूठा", "RFID कार्ड"],
+        "useCases": ["अटेंडेंस", "एक्सेस कंट्रोल", "इलेक्ट्रिक डोरलॉक", "बूम बैरियर"]
       },
       "networking": {
-        "title": "Networking",
-        "tagline": "Connectivity Without Compromise",
-        "features": ["Networking switches", "Access points", "WiFi routers", "Point-to-point switches"],
-        "useCases": ["Corporate office networking", "WiFi zone creation", "Remote area connectivity"]
+        "title": "नेटवर्किंग",
+        "tagline": "बिना किसी समझौते वाली कनेक्टिविटी",
+        "features": ["नेटवर्किंग स्विच", "एक्सेस पॉइंट", "WiFi राउटर", "पॉइंट-टू-पॉइंट स्विच"],
+        "useCases": ["कॉर्पोरेट ऑफिस नेटवर्किंग", "WiFi ज़ोन बनाना", "दूर के इलाकों की कनेक्टिविटी"]
       },
       "audio": {
-        "title": "Audio Systems",
-        "tagline": "Crystal-Clear Audio, Anywhere You Need",
-        "features": ["Amplifiers", "Speakers (wired, Bluetooth)"],
-        "useCases": ["Public address", "Offices", "Lecture halls", "Home theatre"]
+        "title": "ऑडियो सिस्टम",
+        "tagline": "जहां चाहें, बिल्कुल साफ आवाज़",
+        "features": ["एम्पलीफायर", "स्पीकर (वायर्ड, ब्लूटूथ)"],
+        "useCases": ["पब्लिक अनाउंसमेंट", "ऑफिस", "लेक्चर हॉल", "होम थिएटर"]
       }
     }
   },
   "process": {
-    "headline": "Designed for You, Guaranteed by Us",
-    "subheadline": "We're with you from day one — offering support and crafting the perfect solution for your needs.",
+    "headline": "आपके लिए डिज़ाइन, हमारी गारंटी के साथ",
+    "subheadline": "हम शुरू से आपके साथ हैं — आपकी ज़रूरत के हिसाब से सही सॉल्यूशन बनाते हुए, पूरा सपोर्ट देते हैं।",
     "steps": {
-      "design": { "title": "Design & Consultation", "description": "Collaborating with you to craft tailored security and automation solutions from the ground up" },
-      "installation": { "title": "Seamless Installation", "description": "Expert installation that integrates seamlessly with your project, ensuring precision and efficiency" },
-      "support": { "title": "Long-Term Support", "description": "Our 2-year replacement guarantee is backed by 25+ years of learning and expertise. Count on our top-notch service for reliable support beyond the installation" }
+      "design": { "title": "डिज़ाइन और सलाह", "description": "शुरू से ही आपके साथ मिलकर आपकी ज़रूरत के हिसाब से सिक्योरिटी और ऑटोमेशन सॉल्यूशन तैयार करना" },
+      "installation": { "title": "आसान इंस्टॉलेशन", "description": "एक्सपर्ट इंस्टॉलेशन जो आपके प्रोजेक्ट के साथ आसानी से जुड़ जाए, सटीकता और दक्षता के साथ" },
+      "support": { "title": "लंबे समय का सपोर्ट", "description": "हमारी 2 साल की रिप्लेसमेंट गारंटी के पीछे 25+ सालों का अनुभव है। इंस्टॉलेशन के बाद भी हमारी बेहतरीन सर्विस पर भरोसा करें" }
     },
-    "closingLine": "Excited to secure your vision and bring it to life with seamless, trusted solutions!"
+    "closingLine": "आपकी सोच को सुरक्षित करने और उसे भरोसेमंद सॉल्यूशन के साथ हकीकत बनाने के लिए हम तैयार हैं!"
   },
   "service": {
-    "headline": "End-to-End Service Approach",
+    "headline": "शुरू से आखिर तक सर्विस",
     "items": {
-      "installation": { "title": "System Installation", "description": "Custom Solutions, Expert Setup" },
-      "maintenance": { "title": "Maintenance & Support", "description": "Always Ready, Always Reliable" },
-      "upgrades": { "title": "Upgrades & Expansions", "description": "Future-Proof Solutions" },
-      "consultation": { "title": "Expert Consultation", "description": "Expert Advice at Every Step" }
+      "installation": { "title": "सिस्टम इंस्टॉलेशन", "description": "कस्टम सॉल्यूशन, एक्सपर्ट सेटअप" },
+      "maintenance": { "title": "मेंटेनेंस और सपोर्ट", "description": "हमेशा तैयार, हमेशा भरोसेमंद" },
+      "upgrades": { "title": "अपग्रेड और विस्तार", "description": "फ्यूचर-प्रूफ सॉल्यूशन" },
+      "consultation": { "title": "एक्सपर्ट सलाह", "description": "हर कदम पर एक्सपर्ट सलाह" }
     },
-    "closingLine": "Experience peace of mind with our exclusive 2-year replacement guarantee — ensuring unmatched reliability and complete confidence in our products."
+    "closingLine": "हमारी खास 2 साल की रिप्लेसमेंट गारंटी के साथ निश्चिंत रहें — बेजोड़ भरोसा और हमारे प्रोडक्ट्स पर पूरा विश्वास।"
   },
   "b2b": {
-    "headline": "Designed for Builders, Architects & Interior Designers",
-    "body": "With 25+ years of experience across homes, businesses, and institutions, we partner with builders, architects, and interior designers to integrate security and automation from the design stage onward. Our team works alongside your project timeline — from initial consultation through installation — so systems are built in, not bolted on. Backed by our 2-year replacement guarantee and dedicated after-sales support.",
-    "ctaButton": "Partner With Us"
+    "headline": "बिल्डर्स, आर्किटेक्ट्स और इंटीरियर डिज़ाइनर्स के लिए खास",
+    "body": "घरों, बिज़नेस और संस्थानों में 25+ सालों के अनुभव के साथ, हम बिल्डर्स, आर्किटेक्ट्स और इंटीरियर डिज़ाइनर्स के साथ मिलकर डिज़ाइन स्टेज से ही सिक्योरिटी और ऑटोमेशन को प्रोजेक्ट में शामिल करते हैं। हमारी टीम शुरुआती सलाह से लेकर इंस्टॉलेशन तक, आपके प्रोजेक्ट की टाइमलाइन के साथ मिलकर काम करती है — ताकि सिस्टम शुरू से ही प्रोजेक्ट का हिस्सा बने, बाद में जोड़ा हुआ न लगे। हमारी 2 साल की रिप्लेसमेंट गारंटी और खास आफ्टर-सेल्स सपोर्ट के साथ।",
+    "ctaButton": "हमारे साथ जुड़ें"
   },
   "stats": {
-    "years": "Years",
-    "installations": "Installations",
-    "yearClientRelationship": "Year Client Relationship"
+    "years": "साल",
+    "installations": "इंस्टॉलेशन",
+    "yearClientRelationship": "साल का ग्राहक रिश्ता"
   },
   "caseStudies": {
-    "headline": "Case Studies",
-    "subheadline": "Experience the success with our dedicated approach",
-    "painPointLabel": "Pain Point:",
-    "solutionLabel": "Our Solution:",
-    "resultsLabel": "Results:",
+    "headline": "केस स्टडीज़",
+    "subheadline": "हमारे समर्पित तरीके से मिली सफलता को देखें",
+    "painPointLabel": "समस्या:",
+    "solutionLabel": "हमारा समाधान:",
+    "resultsLabel": "नतीजे:",
     "studies": {
       "chouksey": {
-        "painPoint": "Outdated security left key campus areas unmonitored, raising safety concerns and theft.",
-        "solution": "Installed a setup of 600+ CCTV system with real-time monitoring and comprehensive coverage.",
-        "result": "Security incidents dropped by over 80%, significantly improving safety for students and staff.",
-        "testimonial": "Working with Paras Enterprises for 20+ years has been seamless. They gave us exactly what we needed, when we needed."
+        "painPoint": "पुरानी सिक्योरिटी सिस्टम की वजह से कैंपस के कई ज़रूरी इलाके बिना निगरानी के थे, जिससे सुरक्षा को लेकर चिंता और चोरी की घटनाएं बढ़ रही थीं।",
+        "solution": "600+ सीसीटीवी कैमरों का पूरा सेटअप लगाया, जिसमें रियल-टाइम मॉनिटरिंग और पूरी कवरेज शामिल है।",
+        "result": "सुरक्षा से जुड़ी घटनाओं में 80% से ज़्यादा की कमी आई, जिससे छात्रों और स्टाफ की सुरक्षा में काफी सुधार हुआ।",
+        "testimonial": "पिछले 20+ सालों से Paras Enterprises के साथ काम करना बिल्कुल आसान रहा है। जब भी जो ज़रूरत हुई, उन्होंने वही दिया।"
       },
       "sanjeevani": {
-        "painPoint": "Security gaps in sensitive areas led to unauthorized access and safety risks.",
-        "solution": "Installed a setup of 150+ cameras with 24/7 monitoring to secure critical zones.",
-        "result": "Unauthorized access reduced by 70%, enhancing staff and patient safety.",
-        "testimonial": "Very approachable and quick service. They took the time to understand our concerns and delivered the solution in the right time."
+        "painPoint": "संवेदनशील इलाकों में सुरक्षा की कमी की वजह से बिना अनुमति के प्रवेश और सुरक्षा जोखिम बढ़ रहे थे।",
+        "solution": "ज़रूरी इलाकों को सुरक्षित रखने के लिए 150+ कैमरों का सेटअप लगाया, जिसमें 24/7 मॉनिटरिंग शामिल है।",
+        "result": "बिना अनुमति के प्रवेश में 70% की कमी आई, जिससे स्टाफ और मरीज़ों की सुरक्षा बेहतर हुई।",
+        "testimonial": "बहुत सहज और तेज़ सर्विस। उन्होंने हमारी चिंताओं को अच्छी तरह समझा और सही समय पर समाधान दिया।"
       }
     }
   },
   "partnerships": {
-    "headline": "Built on Trusted Partnerships"
+    "headline": "भरोसेमंद पार्टनरशिप की नींव पर"
   },
   "contact": {
-    "eyebrow": "Let's Talk!",
-    "inquiryLabel": "Inquiry",
-    "serviceLabel": "Service",
+    "eyebrow": "आइए बात करें!",
+    "inquiryLabel": "इंक्वायरी",
+    "serviceLabel": "सर्विस",
     "whatsappButton": "WhatsApp",
-    "visitUsHeading": "Visit Us",
-    "visitUsSubtext": "View on Google and get directions instantly",
-    "viewOnGoogleButton": "View on Google"
+    "visitUsHeading": "हमसे मिलें",
+    "visitUsSubtext": "Google पर देखें और तुरंत रास्ता पाएं",
+    "viewOnGoogleButton": "Google पर देखें"
   },
   "footer": {
-    "quickLinksHeading": "Quick Links",
-    "contactUsHeading": "Contact Us",
-    "copyrightTemplate": "© {{year}} Paras Enterprises. All rights reserved."
+    "quickLinksHeading": "क्विक लिंक्स",
+    "contactUsHeading": "संपर्क करें",
+    "copyrightTemplate": "© {{year}} Paras Enterprises. सर्वाधिकार सुरक्षित।"
   },
   "imageModal": {
-    "closeAriaLabel": "Close image"
+    "closeAriaLabel": "फोटो बंद करें"
   }
 }
