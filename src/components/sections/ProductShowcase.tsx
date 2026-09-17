@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProductShowcaseImage } from '@/components/ui/ProductShowcaseImage';
 
@@ -18,17 +19,58 @@ export interface ProductShowcaseProps {
 
 export function ProductShowcase({ products }: ProductShowcaseProps) {
   const { t } = useTranslation();
-  // Increment 1: static skeleton — always shows the first product.
-  // Scroll-sync (IntersectionObserver driving a real activeIndex) lands in Increment 2.
-  const activeProduct = products[0];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    // Rows are tall (min-h-[70vh]) relative to a typical viewport, so more
+    // than one can satisfy the center-band check at once — most commonly
+    // right at initial mount, before any real scrolling has happened.
+    // Track the full set of currently-intersecting rows and deterministically
+    // pick the lowest index among them, rather than whichever observer
+    // callback happens to fire last.
+    const intersecting = new Set<number>();
+
+    const observers = products.map((_, i) => {
+      const el = rowRefs.current[i];
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            intersecting.add(i);
+          } else {
+            intersecting.delete(i);
+          }
+          if (intersecting.size > 0) {
+            setActiveIndex(Math.min(...intersecting));
+          }
+        },
+        { rootMargin: '-45% 0px -45% 0px', threshold: 0 }
+      );
+      observer.observe(el);
+      return observer;
+    });
+
+    return () => {
+      observers.forEach((observer) => observer?.disconnect());
+    };
+  }, [products.length]);
+
+  const activeProduct = products[activeIndex];
 
   return (
     <div className="grid grid-cols-2 gap-16 items-start">
       {/* Left column: scrolling images */}
       <div className="flex flex-col gap-8">
-        {products.map((product) => (
-          <div key={product.slug} className="min-h-[70vh] flex items-center justify-center">
-            <ProductShowcaseImage title={product.title} image={product.image} />
+        {products.map((product, i) => (
+          <div
+            key={product.slug}
+            ref={(el) => {
+              rowRefs.current[i] = el;
+            }}
+            className="min-h-[70vh] flex items-center justify-center"
+          >
+            <ProductShowcaseImage title={product.title} image={product.image} isActive={i === activeIndex} />
           </div>
         ))}
       </div>
