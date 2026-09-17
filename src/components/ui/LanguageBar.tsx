@@ -7,6 +7,18 @@ import { cn } from '@/lib/utils';
 const FONT_SCALE_STEPS = ['85', '92.5', '100', '107.5', '115'];
 const DEFAULT_STEP_INDEX = 2;
 
+const TRACK_CLASSES =
+  'flex items-center gap-1 rounded-radius-sm bg-[var(--color-bg-secondary,#141414)] p-1';
+
+const INACTIVE_BUTTON_CLASSES =
+  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm bg-transparent text-text-muted hover:text-text-secondary transition-colors';
+
+const ACTIVE_BUTTON_CLASSES =
+  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm bg-accent text-bg-primary font-semibold transition-colors';
+
+const DISABLED_BUTTON_CLASSES =
+  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm bg-transparent text-text-muted/40 cursor-not-allowed';
+
 export function LanguageBar() {
   const { i18n } = useTranslation();
   const [scaleIndex, setScaleIndex] = useState(DEFAULT_STEP_INDEX);
@@ -26,75 +38,57 @@ export function LanguageBar() {
 
   const isMin = scaleIndex === 0;
   const isMax = scaleIndex === FONT_SCALE_STEPS.length - 1;
+  const isAtDefault = scaleIndex === DEFAULT_STEP_INDEX;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[70] h-8 flex items-center justify-center gap-4 bg-[var(--color-bg-elevated,#1C1C1C)] border-b border-border text-xs shadow-[var(--shadow-card,0_4px_24px_rgba(0,0,0,0.4))]">
-      {/* Font-size controls */}
-      <button
-        type="button"
-        onClick={decrease}
-        disabled={isMin}
-        className={cn(
-          'min-h-[44px] min-w-[44px] flex items-center justify-center text-[10px] rounded-radius-sm border border-transparent transition-colors',
-          isMin
-            ? 'text-text-muted/40 cursor-not-allowed'
-            : 'text-text-muted hover:text-text-secondary hover:bg-[var(--color-border,#2A2A2A)] hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))]'
-        )}
-        aria-label="Decrease font size"
-      >
-        A-
-      </button>
-      <button
-        type="button"
-        onClick={reset}
-        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-xs rounded-radius-sm border border-transparent text-text-secondary hover:text-text-primary hover:bg-[var(--color-border,#2A2A2A)] hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))] transition-colors"
-        aria-label="Reset font size to normal"
-      >
-        A
-      </button>
-      <button
-        type="button"
-        onClick={increase}
-        disabled={isMax}
-        className={cn(
-          'min-h-[44px] min-w-[44px] flex items-center justify-center text-sm rounded-radius-sm border border-transparent transition-colors',
-          isMax
-            ? 'text-text-muted/40 cursor-not-allowed'
-            : 'text-text-muted hover:text-text-secondary hover:bg-[var(--color-border,#2A2A2A)] hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))]'
-        )}
-        aria-label="Increase font size"
-      >
-        A+
-      </button>
+      {/* Font-size track */}
+      <div className={TRACK_CLASSES}>
+        <button
+          type="button"
+          onClick={decrease}
+          disabled={isMin}
+          className={cn(isMin ? DISABLED_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES, 'text-[10px]')}
+          aria-label="Decrease font size"
+        >
+          A-
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          className={cn(isAtDefault ? ACTIVE_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES, 'text-xs')}
+          aria-label="Reset font size to normal"
+        >
+          A
+        </button>
+        <button
+          type="button"
+          onClick={increase}
+          disabled={isMax}
+          className={cn(isMax ? DISABLED_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES, 'text-sm')}
+          aria-label="Increase font size"
+        >
+          A+
+        </button>
+      </div>
 
-      <span className="text-text-muted" aria-hidden="true">|</span>
-
-      {/* Language controls */}
-      <button
-        type="button"
-        onClick={() => i18n.changeLanguage('en')}
-        className={cn(
-          'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm border transition-colors',
-          i18n.language === 'en'
-            ? 'text-accent font-semibold bg-accent/15 border-[var(--color-border-accent,rgba(45,212,232,0.4))]'
-            : 'text-text-muted border-transparent hover:text-text-secondary hover:bg-[var(--color-border,#2A2A2A)] hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))]'
-        )}
-      >
-        English
-      </button>
-      <span className="text-text-muted" aria-hidden="true">|</span>
-      <button
-        type="button"
-        onClick={() => i18n.changeLanguage('hi')}
-        className={cn(
-          'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-radius-sm border transition-colors',
-          i18n.language === 'hi'
-            ? 'text-accent font-semibold bg-accent/15 border-[var(--color-border-accent,rgba(45,212,232,0.4))]'
-            : 'text-text-muted border-transparent hover:text-text-secondary hover:bg-[var(--color-border,#2A2A2A)] hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))]'
-        )}
-      >
-        Hindi
-      </button>
+      {/* Language track */}
+      <div className={TRACK_CLASSES}>
+        <button
+          type="button"
+          onClick={() => i18n.changeLanguage('en')}
+          className={i18n.language === 'en' ? ACTIVE_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES}
+        >
+          English
+        </button>
+        <button
+          type="button"
+          onClick={() => i18n.changeLanguage('hi')}
+          className={i18n.language === 'hi' ? ACTIVE_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES}
+        >
+          Hindi
+        </button>
+      </div>
     </div>
   );
 }
