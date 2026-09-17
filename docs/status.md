@@ -124,3 +124,30 @@ Session 09 (Final QA) complete. TS errors clean, copy proofread passed (one stal
 
 ## Known Testing Gap (Session 09)
 - **Firefox / Safari not tested:** All QA was limited to Chrome/Brave (desktop + mobile DevTools + real device). This gap is explicitly acknowledged and not assumed covered.
+
+## Note: Session 10 was never logged here
+This file has no entry for Session 10 (Hindi/English language toggle via react-i18next,
+plus the persistent top LanguageBar with font-size controls). That work is real and
+complete — see `git log` and `docs/04-process/decisions.md` for the full history — but
+the required status.md update was missed at the time. Flagging this gap explicitly rather
+than silently leaving it unexplained. Session 11 (below) is logged correctly.
+
+## Session 11 (Scroll-Synced Product Showcase) — COMPLETE
+Replaced desktop's Product Grid with a two-column scroll-synced "scrollytelling" layout
+(sticky detail panel crossfades as the user scrolls past each product image on the left).
+Mobile grid is completely unchanged, split via the existing `lg:` breakpoint. New files:
+`src/components/sections/ProductShowcase.tsx`, `src/components/ui/ProductShowcaseImage.tsx`.
+Full architecture and verification results logged in `docs/04-process/decisions.md`.
+
+**Verified:** real-scroll IntersectionObserver sync (perfect accuracy through all 9
+products), Hindi mode (detail panel + image alt text + ImageModal's own close-button
+label all translate correctly), ImageModal unchanged on the new layout, mobile confirmed
+byte-identical to pre-Session-11, Lighthouse desktop 100/100 with 0 CLS.
+
+**Discovered, logged, not fixed (out of scope):** a sitewide pre-existing hydration
+mismatch affecting every component using Framer Motion's `useReducedMotion()` to branch
+animation props (Navbar, Hero, Reveal, StaggerContainer, Partnerships, and now
+ProductShowcase, which inherited the existing pattern) — real visitors with OS-level
+reduced-motion already enabled get a console error and a wasted re-render on first page
+load, sitewide. Full repro details and fix options in `decisions.md`. Worth a dedicated
+future session.

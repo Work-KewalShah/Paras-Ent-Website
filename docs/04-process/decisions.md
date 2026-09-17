@@ -207,3 +207,39 @@
   `motion-reduce:scale-100` (matching `ProductCard.tsx`'s existing
   `motion-reduce:hover:scale-100` convention) so only opacity changes under reduced motion,
   never scale.
+
+## Session 11: Scroll-Synced Product Showcase — Final Architecture
+- **Decision:** Replaced desktop's Product Grid with a two-column "scrollytelling" layout
+  (left column: 9 scrolling product images; right column: a sticky detail panel that
+  crossfades as the active product changes). Mobile keeps the original grid completely
+  unchanged, split via the site's existing `lg:` (1024px) breakpoint convention.
+- **Component architecture:** `ProductGrid.tsx` now resolves all product text via `t()`
+  exactly once into a single `resolvedProducts` array, then renders `lg:hidden` (the
+  untouched original grid, via the untouched `ProductCard.tsx`) and `hidden lg:block`
+  (the new `ProductShowcase.tsx`) from that same array — no duplicated translation
+  lookups between the two layouts. New files: `src/components/sections/ProductShowcase.tsx`
+  (scroll-sync state + sticky panel) and `src/components/ui/ProductShowcaseImage.tsx`
+  (per-image click-to-expand button, mirroring `ProductCard`'s existing `ImageModal` trio
+  exactly).
+- **Active-image detection:** one `IntersectionObserver` per row (`rootMargin: '-45% 0px
+  -45% 0px', threshold: 0`), tracking the full set of currently-intersecting rows and
+  deterministically choosing the lowest index among them (rather than "whichever observer
+  fires last") — rows are tall (`min-h-[70vh]`) enough that more than one can intersect
+  the center band simultaneously in edge cases.
+- **Detail panel transition:** `AnimatePresence` (`mode="wait"`) crossfade reusing
+  motion-guide.md's existing opacity+translateY vocabulary (0.3s, `[0.16,1,0.3,1]`),
+  dropping to `0.01s` and no translate under reduced motion (matching `Hero.tsx`'s
+  existing convention).
+- **Active/inactive image treatment:** `opacity-100 scale-100` active, `opacity-40
+  scale-95` inactive, `motion-reduce:scale-100` (matching `ProductCard.tsx`'s existing
+  hover-scale reduced-motion pattern).
+- **Verification results:** real natural-scroll test confirms the detail panel and active
+  image stay in perfect sync through all 9 products in order, correctly clamping at the
+  last product past the end of the section. Hindi mode confirmed working throughout
+  (detail panel text, image alt text, and `ImageModal`'s own close-button label all
+  translate correctly). `ImageModal` confirmed working unchanged on the new layout.
+  Mobile confirmed byte-identical to the pre-Session-11 grid. Lighthouse desktop
+  performance: 100/100, CLS 0 — the new `min-h-[70vh]` rows and sticky panel introduce
+  no layout shift.
+- **Discovered but out of scope:** a sitewide pre-existing hydration mismatch for
+  `prefers-reduced-motion` users, logged in detail immediately above this entry.
