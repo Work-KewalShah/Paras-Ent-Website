@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { siteConfig } from '@/lib/content/site-config';
 import { useScrollPosition } from '@/lib/hooks/useScrollPosition';
-import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { cn } from '@/lib/utils';
 
 export default function Navbar() {
@@ -59,7 +58,7 @@ export default function Navbar() {
   return (
     <>
     <motion.header
-      className="fixed top-0 left-0 right-0 z-50 border-b border-border/0 min-h-[72px]"
+      className="fixed top-8 left-0 right-0 z-50 border-b border-border/0 min-h-[72px]"
       {...navbarVariants}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -96,7 +95,6 @@ export default function Navbar() {
           >
             {t('common.ctaSiteSurvey')}
           </a>
-          <LanguageToggle />
         </div>
 
         {/* Mobile: Phone + Hamburger */}
@@ -151,7 +149,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden fixed left-0 right-0 top-[72px] z-[60] bg-[var(--color-bg-primary,#0A0A0A)] rounded-b-lg shadow-lg max-h-[calc(100vh-72px)] overflow-y-auto"
+            className="lg:hidden fixed left-0 right-0 top-[104px] z-[60] bg-[var(--color-bg-primary,#0A0A0A)] rounded-b-lg shadow-lg max-h-[calc(100vh-104px)] overflow-y-auto"
           >
             <nav className="flex flex-col items-center justify-center gap-8">
               {siteConfig.navLinks.map((link) => (
@@ -164,7 +162,6 @@ export default function Navbar() {
                   {t(link.labelKey)}
                 </a>
               ))}
-              <LanguageToggle />
               <a
                 href="#contact"
                 onClick={() => setMobileMenuOpen(false)}

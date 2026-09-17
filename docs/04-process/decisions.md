@@ -130,3 +130,26 @@
 - **ScrollShowcase.tsx:** Was also rebuilt during this same 2026-09-12 pass, but was
   subsequently removed entirely — already accurately logged under "Session 08/09: Pattern 6
   (ScrollShowcase) Removed" above. No further action needed for it here.
+
+## Session 10: Discovered Bug (Out of Scope) — Mobile Type-Scale Override Never Applies
+- **Discovery context:** Found while verifying the `text-size-adjust` fix on a real mobile
+  viewport (Session 10, language-toggle work) — unrelated to i18n, pre-existing since
+  whenever `design-system.md`'s mobile type scale was implemented (Session 01/02 era).
+- **Bug:** `app/globals.css` defines `--text-hero`, `--text-h1`, `--text-h2`, `--text-h3`,
+  `--text-body`, `--text-small` inside a `@theme inline { ... }` block, with a separate
+  `@media (max-width: 767px) { :root { --text-hero: 40px; ... } }` block intended to shrink
+  these for mobile. Because the tokens are declared `@theme inline` (not plain `@theme`),
+  Tailwind v4 inlines the literal desktop value directly into each generated utility class
+  (confirmed in compiled output: `.text-hero{font-size:72px}` — a hardcoded number, not
+  `font-size:var(--text-hero)`). The mobile media query still correctly redefines the CSS
+  custom property on `:root`, but nothing reads that property anymore, so the override has
+  no effect. Confirmed via `getComputedStyle` on a real 390px-wide mobile viewport: `h1`
+  renders at 72px (the desktop value) instead of the intended 40px.
+- **Scope:** Every utility built from these six tokens (`text-hero`, `text-h1`, `text-h2`,
+  `text-h3`, `text-body`, `text-small`) is affected site-wide — this is not limited to the
+  Hero section. The mobile type scale documented in `design-system.md` has likely never
+  actually applied since it was written.
+- **Not fixed here:** Out of scope for the Session 10 language-toggle work. Fixing requires
+  restructuring the `@theme` block (or an equivalent mechanism that preserves a `var()`
+  reference through to the generated utilities) and re-verifying every affected component's
+  mobile layout — a separate, dedicated session's worth of work, not a one-line change.

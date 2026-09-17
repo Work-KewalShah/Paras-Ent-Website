@@ -64,7 +64,10 @@
 /* === Smooth scroll + header offset === */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 72px; /* fixed header height */
+  scroll-padding-top: 104px; /* LanguageBar (32px) + fixed navbar (72px) */
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
