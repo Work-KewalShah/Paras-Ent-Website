@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://parasent.web.app/sitemap.xml
