@@ -54,17 +54,46 @@
   --font-body: "Inter", var(--font-devanagari), sans-serif;
 }
 
+/* Font-size scale: each --text-*-base holds the breakpoint-specific pixel
+   value (what the mobile media query below touches); --font-scale
+   multiplies it via calc(). The LanguageBar's A-/A/A+ control only ever
+   touches --font-scale, so it applies correctly on top of whichever
+   breakpoint's base value is currently active. */
+:root {
+  --font-scale: 1;
+  --text-hero-base: 72px;
+  --text-h1-base: 48px;
+  --text-h2-base: 32px;
+  --text-h3-base: 20px;
+  --text-body-base: 16px;
+  --text-small-base: 14px;
+
+  --text-hero: calc(var(--text-hero-base) * var(--font-scale));
+  --text-h1: calc(var(--text-h1-base) * var(--font-scale));
+  --text-h2: calc(var(--text-h2-base) * var(--font-scale));
+  --text-h3: calc(var(--text-h3-base) * var(--font-scale));
+  --text-body: calc(var(--text-body-base) * var(--font-scale));
+  --text-small: calc(var(--text-small-base) * var(--font-scale));
+}
+
 /* Mobile type scale overrides */
 @media (max-width: 767px) {
   :root {
-    --text-hero: 40px;
-    --text-h1: 32px;
-    --text-h2: 24px;
-    --text-h3: 18px;
-    --text-body: 15px;
-    --text-small: 13px;
+    --text-hero-base: 40px;
+    --text-h1-base: 32px;
+    --text-h2-base: 24px;
+    --text-h3-base: 18px;
+    --text-body-base: 15px;
+    --text-small-base: 13px;
   }
 }
+
+/* Font-size steps, same data-attribute pattern as :root[data-lang="hi"].
+   100% is the plain :root default above and sets no attribute at all. */
+:root[data-font-scale="85"] { --font-scale: 0.85; }
+:root[data-font-scale="92.5"] { --font-scale: 0.925; }
+:root[data-font-scale="107.5"] { --font-scale: 1.075; }
+:root[data-font-scale="115"] { --font-scale: 1.15; }
 
 /* === Smooth scroll + header offset === */
 html {
