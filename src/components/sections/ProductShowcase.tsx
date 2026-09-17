@@ -1,0 +1,66 @@
+'use client';
+
+import { useTranslation } from 'react-i18next';
+import { ProductShowcaseImage } from '@/components/ui/ProductShowcaseImage';
+
+export interface ResolvedProduct {
+  slug: string;
+  image: string;
+  title: string;
+  tagline: string;
+  features: string[];
+  useCases?: string[];
+}
+
+export interface ProductShowcaseProps {
+  products: ResolvedProduct[];
+}
+
+export function ProductShowcase({ products }: ProductShowcaseProps) {
+  const { t } = useTranslation();
+  // Increment 1: static skeleton — always shows the first product.
+  // Scroll-sync (IntersectionObserver driving a real activeIndex) lands in Increment 2.
+  const activeProduct = products[0];
+
+  return (
+    <div className="grid grid-cols-2 gap-16 items-start">
+      {/* Left column: scrolling images */}
+      <div className="flex flex-col gap-8">
+        {products.map((product) => (
+          <div key={product.slug} className="min-h-[70vh] flex items-center justify-center">
+            <ProductShowcaseImage title={product.title} image={product.image} />
+          </div>
+        ))}
+      </div>
+
+      {/* Right column: sticky detail panel */}
+      <div className="sticky top-[104px] self-start">
+        <div className="bg-[var(--color-bg-card,#141414)] rounded-lg border border-[var(--color-border-card,#222)] p-8">
+          <h3 className="font-display text-h2 uppercase tracking-tight text-accent mb-2">
+            {activeProduct.title}
+          </h3>
+          <p className="text-text-secondary text-body mb-6">{activeProduct.tagline}</p>
+
+          <ul className="list-disc list-inside text-text-secondary text-small space-y-1 mb-6">
+            {activeProduct.features.map((feature, i) => (
+              <li key={i}>{feature}</li>
+            ))}
+          </ul>
+
+          {activeProduct.useCases && activeProduct.useCases.length > 0 && (
+            <div className="pt-4 border-t border-[var(--color-border-subtle,#1a1a1a)]">
+              <h4 className="font-medium text-text-primary text-small mb-2">
+                {t('products.useCasesHeading')}
+              </h4>
+              <ul className="list-disc list-inside text-text-secondary text-small space-y-1">
+                {activeProduct.useCases.map((useCase, i) => (
+                  <li key={i}>{useCase}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
