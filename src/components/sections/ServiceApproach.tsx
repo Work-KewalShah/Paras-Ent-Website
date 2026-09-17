@@ -1,15 +1,18 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { Reveal } from '@/components/ui/Reveal';
 
 export default function ServiceApproach() {
+  const { t } = useTranslation();
+
   return (
     <section id="service" className="py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Section Intro */}
         <div className="mb-16 text-center">
           <h2 className="font-display text-h1 uppercase tracking-tight mb-6">
-            End-to-End Service Approach
+            {t('service.headline')}
           </h2>
         </div>
 
@@ -24,10 +27,10 @@ export default function ServiceApproach() {
                 </div>
                 <div>
                   <h3 className="font-display text-h3 uppercase tracking-tight mb-2">
-                    System Installation
+                    {t('service.items.installation.title')}
                   </h3>
                   <p className="text-text-secondary text-body">
-                    Custom Solutions, Expert Setup
+                    {t('service.items.installation.description')}
                   </p>
                 </div>
               </div>
@@ -41,10 +44,10 @@ export default function ServiceApproach() {
                 </div>
                 <div>
                   <h3 className="font-display text-h3 uppercase tracking-tight mb-2">
-                    Maintenance & Support
+                    {t('service.items.maintenance.title')}
                   </h3>
                   <p className="text-text-secondary text-body">
-                    Always Ready, Always Reliable
+                    {t('service.items.maintenance.description')}
                   </p>
                 </div>
               </div>
@@ -58,10 +61,10 @@ export default function ServiceApproach() {
                 </div>
                 <div>
                   <h3 className="font-display text-h3 uppercase tracking-tight mb-2">
-                    Upgrades & Expansions
+                    {t('service.items.upgrades.title')}
                   </h3>
                   <p className="text-text-secondary text-body">
-                    Future-Proof Solutions
+                    {t('service.items.upgrades.description')}
                   </p>
                 </div>
               </div>
@@ -75,10 +78,10 @@ export default function ServiceApproach() {
                 </div>
                 <div>
                   <h3 className="font-display text-h3 uppercase tracking-tight mb-2">
-                    Expert Consultation
+                    {t('service.items.consultation.title')}
                   </h3>
                   <p className="text-text-secondary text-body">
-                    Expert Advice at Every Step
+                    {t('service.items.consultation.description')}
                   </p>
                 </div>
               </div>
@@ -89,9 +92,7 @@ export default function ServiceApproach() {
         {/* Closing Guarantee */}
         <Reveal>
           <p className="mt-16 text-text-secondary text-center text-sm leading-relaxed max-w-2xl mx-auto">
-            Experience peace of mind with our exclusive 2-year replacement
-            guarantee — ensuring unmatched reliability and complete
-            confidence in our products.
+            {t('service.closingLine')}
           </p>
         </Reveal>
       </div>

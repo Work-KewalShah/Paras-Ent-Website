@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'framer-motion';
 
 const clients = [
@@ -17,6 +18,7 @@ const clients = [
 ];
 
 export const Partnerships = () => {
+  const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -24,7 +26,7 @@ export const Partnerships = () => {
       <div className="max-w-7xl mx-auto">
         {/* Headline */}
         <h2 className="font-display text-h1 uppercase tracking-tight text-center mb-4">
-          Built on Trusted Partnerships
+          {t('partnerships.headline')}
         </h2>
 
         {/* Marquee row */}

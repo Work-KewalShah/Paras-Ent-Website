@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Card } from './Card';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ export interface CaseStudyCardProps {
 }
 
 export const CaseStudyCard = ({ study, className }: CaseStudyCardProps) => {
+  const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -38,21 +40,21 @@ export const CaseStudyCard = ({ study, className }: CaseStudyCardProps) => {
 
         <div className="space-y-3 text-text-secondary text-small leading-relaxed">
           <div>
-            <strong className="text-text-primary font-medium">Pain Point:</strong>{' '}
-            {study.painPoint}
+            <strong className="text-text-primary font-medium">{t('caseStudies.painPointLabel')}</strong>{' '}
+            {t(`caseStudies.studies.${study.slug}.painPoint`)}
           </div>
           <div>
-            <strong className="text-text-primary font-medium">Our Solution:</strong>{' '}
-            {study.solution}
+            <strong className="text-text-primary font-medium">{t('caseStudies.solutionLabel')}</strong>{' '}
+            {t(`caseStudies.studies.${study.slug}.solution`)}
           </div>
           <div>
-            <strong className="text-text-primary font-medium">Results:</strong>{' '}
-            {study.result}
+            <strong className="text-text-primary font-medium">{t('caseStudies.resultsLabel')}</strong>{' '}
+            {t(`caseStudies.studies.${study.slug}.result`)}
           </div>
         </div>
 
         <blockquote className="mt-4 pt-4 border-t border-[var(--color-border-subtle,#1a1a1a)] text-text-primary text-small italic leading-relaxed">
-          “{study.testimonial}”
+          “{t(`caseStudies.studies.${study.slug}.testimonial`)}”
           <cite className="block mt-2 not-italic text-text-muted text-xs">— {study.testimonialAuthor}</cite>
         </blockquote>
       </div>

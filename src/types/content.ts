@@ -15,6 +15,7 @@ export interface Product {
 }
 
 export interface CaseStudy {
+  slug: string;
   clientName: string;
   painPoint: string;
   solution: string;

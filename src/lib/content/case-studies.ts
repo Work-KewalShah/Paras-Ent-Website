@@ -2,6 +2,7 @@ import { CaseStudy } from '@/types/content';
 
 export const caseStudies: CaseStudy[] = [
   {
+    slug: 'chouksey',
     clientName: 'Chouksey Engineering College',
     painPoint: 'Outdated security left key campus areas unmonitored, raising safety concerns and theft.',
     solution: 'Installed a setup of 600+ CCTV system with real-time monitoring and comprehensive coverage.',
@@ -11,6 +12,7 @@ export const caseStudies: CaseStudy[] = [
     image: 'case-study-chouksey.jpg',
   },
   {
+    slug: 'sanjeevani',
     clientName: 'Sanjeevani Hospital',
     painPoint: 'Security gaps in sensitive areas led to unauthorized access and safety risks.',
     solution: 'Installed a setup of 150+ cameras with 24/7 monitoring to secure critical zones.',

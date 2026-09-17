@@ -2,6 +2,7 @@
 
 import React, { useEffect, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface ImageModalProps {
@@ -12,6 +13,7 @@ interface ImageModalProps {
 }
 
 export const ImageModal = ({ src, alt, isOpen, onClose }: ImageModalProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return createPortal(
@@ -31,7 +33,7 @@ export const ImageModal = ({ src, alt, isOpen, onClose }: ImageModalProps) => {
         <button
           onClick={onClose}
           className="absolute top-2 right-2 rounded-full p-1 bg-white/20 text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-          aria-label="Close image"
+          aria-label={t('imageModal.closeAriaLabel')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

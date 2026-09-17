@@ -1,11 +1,13 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { caseStudies } from '@/lib/content/case-studies';
 import { CaseStudyCard } from '@/components/ui/CaseStudyCard';
 
 export const CaseStudies = () => {
+  const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -14,10 +16,10 @@ export const CaseStudies = () => {
         {/* Section intro */}
         <div className="text-center mb-16">
           <h2 className="font-display text-h1 uppercase tracking-tight mb-4">
-            Case Studies
+            {t('caseStudies.headline')}
           </h2>
           <p className="text-text-secondary text-body leading-relaxed max-w-2xl mx-auto">
-            Experience the success with our dedicated approach
+            {t('caseStudies.subheadline')}
           </p>
         </div>
 

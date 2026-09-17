@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useInView, useMotionValue, animate, useTransform, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface StatData {
   value: string;
-  label: string;
+  labelKey: string;
 }
 
 interface AnimatedStatProps {
@@ -14,6 +15,7 @@ interface AnimatedStatProps {
 }
 
 const AnimatedStat = ({ stat }: AnimatedStatProps) => {
+  const { t } = useTranslation();
   const motionVal = useMotionValue(0);
   const shouldReduceMotion = useReducedMotion();
 
@@ -53,7 +55,7 @@ const AnimatedStat = ({ stat }: AnimatedStatProps) => {
           />
         </div>
       </div>
-      <p className="text-text-secondary text-small">{stat.label}</p>
+      <p className="text-text-secondary text-small">{t(stat.labelKey)}</p>
     </div>
   );
 };
