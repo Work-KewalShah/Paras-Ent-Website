@@ -10,10 +10,14 @@ const DEFAULT_STEP_INDEX = 2;
 const TRACK_CLASSES =
   'flex items-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-1';
 
-// Outer wrapper is the real tap target — always transparent, regardless of
-// active state, so its 44x44 box never visibly paints. Only the inner pill
-// (sized to the compact track) shows on screen.
-const OUTER_CLASSES = 'group min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent';
+// Outer wrapper sizes naturally to its content (the small visible pill) so
+// it never forces the bar's own h-8 (32px) track taller. The real 44x44 tap
+// target is an absolutely-positioned ::after overlay — out of normal flow
+// entirely, so it extends the clickable area without affecting layout
+// height anywhere. inset-[-12px] is calculated from the smallest rendered
+// pill (A-, ~27x21px) so every button reaches at least 44x44.
+const OUTER_CLASSES =
+  "group relative flex items-center justify-center bg-transparent after:content-[''] after:absolute after:inset-[-12px]";
 
 const INNER_BASE = 'flex items-center justify-center rounded-sm px-2 py-1 transition-colors';
 
