@@ -10,14 +10,16 @@ const DEFAULT_STEP_INDEX = 2;
 const TRACK_CLASSES =
   'flex items-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-1';
 
-const INACTIVE_BUTTON_CLASSES =
-  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm bg-transparent text-text-muted hover:text-text-secondary transition-colors';
+// Outer wrapper is the real tap target — always transparent, regardless of
+// active state, so its 44x44 box never visibly paints. Only the inner pill
+// (sized to the compact track) shows on screen.
+const OUTER_CLASSES = 'group min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent';
 
-const ACTIVE_BUTTON_CLASSES =
-  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm bg-accent text-bg-primary font-semibold transition-colors';
+const INNER_BASE = 'flex items-center justify-center rounded-sm px-2 py-1 transition-colors';
 
-const DISABLED_BUTTON_CLASSES =
-  'min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm bg-transparent text-text-muted/40 cursor-not-allowed';
+const INNER_ACTIVE = cn(INNER_BASE, 'bg-accent text-bg-primary font-semibold');
+const INNER_INACTIVE = cn(INNER_BASE, 'bg-transparent text-text-muted group-hover:text-text-secondary');
+const INNER_DISABLED = cn(INNER_BASE, 'bg-transparent text-text-muted/40');
 
 export function LanguageBar() {
   const { i18n } = useTranslation();
@@ -48,27 +50,27 @@ export function LanguageBar() {
           type="button"
           onClick={decrease}
           disabled={isMin}
-          className={cn(isMin ? DISABLED_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES, 'text-[10px]')}
+          className={cn(OUTER_CLASSES, isMin && 'cursor-not-allowed')}
           aria-label="Decrease font size"
         >
-          A-
+          <span className={cn(isMin ? INNER_DISABLED : INNER_INACTIVE, 'text-[10px]')}>A-</span>
         </button>
         <button
           type="button"
           onClick={reset}
-          className={cn(isAtDefault ? ACTIVE_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES, 'text-xs')}
+          className={OUTER_CLASSES}
           aria-label="Reset font size to normal"
         >
-          A
+          <span className={cn(isAtDefault ? INNER_ACTIVE : INNER_INACTIVE, 'text-xs')}>A</span>
         </button>
         <button
           type="button"
           onClick={increase}
           disabled={isMax}
-          className={cn(isMax ? DISABLED_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES, 'text-sm')}
+          className={cn(OUTER_CLASSES, isMax && 'cursor-not-allowed')}
           aria-label="Increase font size"
         >
-          A+
+          <span className={cn(isMax ? INNER_DISABLED : INNER_INACTIVE, 'text-sm')}>A+</span>
         </button>
       </div>
 
@@ -77,16 +79,16 @@ export function LanguageBar() {
         <button
           type="button"
           onClick={() => i18n.changeLanguage('en')}
-          className={i18n.language === 'en' ? ACTIVE_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES}
+          className={OUTER_CLASSES}
         >
-          English
+          <span className={i18n.language === 'en' ? INNER_ACTIVE : INNER_INACTIVE}>English</span>
         </button>
         <button
           type="button"
           onClick={() => i18n.changeLanguage('hi')}
-          className={i18n.language === 'hi' ? ACTIVE_BUTTON_CLASSES : INACTIVE_BUTTON_CLASSES}
+          className={OUTER_CLASSES}
         >
-          Hindi
+          <span className={i18n.language === 'hi' ? INNER_ACTIVE : INNER_INACTIVE}>Hindi</span>
         </button>
       </div>
     </div>
