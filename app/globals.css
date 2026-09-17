@@ -41,6 +41,14 @@
   --shadow-glow-accent: 0 0 24px rgba(45, 212, 232, 0.25);
 }
 
+/* Devanagari fallback: appended, not prepended, so per-glyph fallback keeps
+   Latin proper nouns/numbers in Anton/Inter while Devanagari characters fall
+   through to Noto Sans Devanagari. */
+:root[data-lang="hi"] {
+  --font-display: "Anton", var(--font-devanagari), sans-serif;
+  --font-body: "Inter", var(--font-devanagari), sans-serif;
+}
+
 /* Mobile type scale overrides */
 @media (max-width: 767px) {
   :root {

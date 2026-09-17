@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Anton, Inter } from "next/font/google";
+import { Anton, Inter, Noto_Sans_Devanagari } from "next/font/google";
+import { I18nProvider } from "@/components/providers/I18nProvider";
 import "./globals.css";
 
 const anton = Anton({
@@ -12,6 +13,13 @@ const anton = Anton({
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-body",
+  display: "optional",
+});
+
+const notoSansDevanagari = Noto_Sans_Devanagari({
+  weight: ["400", "700"],
+  subsets: ["devanagari", "latin"],
+  variable: "--font-devanagari",
   display: "optional",
 });
 
@@ -38,9 +46,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${anton.variable} ${inter.variable}`}>
+    <html lang="en" className={`${anton.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
       <body className="antialiased">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
