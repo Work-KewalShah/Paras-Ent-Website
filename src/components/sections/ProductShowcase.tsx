@@ -79,7 +79,7 @@ export function ProductShowcase({ products }: ProductShowcaseProps) {
 
       {/* Right column: sticky detail panel */}
       <div className="sticky top-1/2 -translate-y-1/2 self-start">
-        <div className="bg-[var(--color-bg-card,#141414)] rounded-lg border border-[var(--color-border-card,#222)] p-8 overflow-hidden">
+        <div className="bg-[var(--color-bg-card,#141414)] rounded-lg border border-[var(--color-border-card,#222)] p-8 overflow-hidden min-h-[540px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeProduct.slug}
