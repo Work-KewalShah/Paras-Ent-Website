@@ -21,7 +21,8 @@
     "headline": "Protect What Matters",
     "subheadline": "25+ years of trusted security and service — protecting homes, businesses, and institutions across Bilaspur.",
     "supportingLine": "8,000+ installations across Bilaspur and nearby areas",
-    "carouselAriaLabel": "Hero visual carousel"
+    "carouselAriaLabel": "Hero visual carousel",
+    "carouselImageAlt": "Security and automation solutions by Paras Enterprises"
   },
   "carousel": {
     "dotsAriaLabel": "Carousel slides",
