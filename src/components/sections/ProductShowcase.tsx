@@ -78,7 +78,7 @@ export function ProductShowcase({ products }: ProductShowcaseProps) {
       </div>
 
       {/* Right column: sticky detail panel */}
-      <div className="sticky top-0 self-start min-h-screen flex items-center justify-center">
+      <div className="sticky top-[104px] self-start min-h-[calc(100vh-104px)] flex items-center justify-center">
         <div className="w-full bg-[var(--color-bg-card,#141414)] rounded-lg border border-[var(--color-border-card,#222)] p-8 overflow-hidden min-h-[540px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             <motion.div
