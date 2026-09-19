@@ -57,8 +57,7 @@ export default function ProductGrid() {
         </div>
 
         {/* Desktop: scroll-synced showcase */}
-        {/* pt ensures the sticky panel's top-1/2 engagement point falls after the headline has scrolled fully offscreen */}
-        <div className="hidden lg:block lg:pt-[calc(50vh-40px)]">
+        <div className="hidden lg:block lg:pt-16">
           <ProductShowcase products={resolvedProducts} />
         </div>
       </div>
