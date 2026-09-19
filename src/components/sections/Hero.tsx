@@ -33,21 +33,6 @@ export default function Hero() {
         },
       };
 
-  const visualVariants = shouldReduceMotion
-    ? {
-        hidden: { opacity: 0 },
-        show: { opacity: 1, transition: { duration: 0.01 } },
-      }
-    : {
-        hidden: { opacity: 0, y: 20, scale: 0.95 },
-        show: {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          transition: { duration: 0.8 },
-        },
-      };
-
   const scanLineVariants = shouldReduceMotion
     ? { hidden: { opacity: 0 }, show: { opacity: 0 } }
     : {
@@ -63,7 +48,33 @@ export default function Hero() {
       };
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center pt-36 lg:pt-[104px] overflow-hidden">
+    <section className="relative min-h-[100dvh] flex items-center pt-[104px] overflow-hidden">
+      {/* Full-bleed carousel background layer */}
+      <div className="absolute inset-0">
+        <Carousel
+          slides={heroSlides}
+          ariaLabel={t('hero.carouselAriaLabel')}
+          imageAlt={t('hero.carouselImageAlt')}
+        />
+      </div>
+
+      {/* Readability gradient — desktop: dark left fading into visible image on the right */}
+      <div
+        className="absolute inset-0 hidden lg:block pointer-events-none z-[5]"
+        style={{
+          background:
+            'linear-gradient(to right, rgba(10,10,10,0.90) 0%, rgba(10,10,10,0.90) 50%, rgba(10,10,10,0) 78%)',
+        }}
+      />
+      {/* Readability gradient — mobile: vertical vignette around the centered text block */}
+      <div
+        className="absolute inset-0 lg:hidden pointer-events-none z-[5]"
+        style={{
+          background:
+            'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.90) 15%, rgba(10,10,10,0.90) 85%, rgba(10,10,10,0) 100%)',
+        }}
+      />
+
       {/* Scan Line Effect */}
       <motion.div
         variants={scanLineVariants}
@@ -76,7 +87,7 @@ export default function Hero() {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pointer-events-none">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -116,13 +127,13 @@ export default function Hero() {
             >
               <a
                 href="#contact"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-radius-sm bg-accent text-bg-primary font-medium text-small hover:bg-accent-hover transition-colors min-h-[44px]"
+                className="pointer-events-auto inline-flex items-center justify-center px-6 py-3 rounded-radius-sm bg-accent text-bg-primary font-medium text-small hover:bg-accent-hover transition-colors min-h-[44px]"
               >
                 {t('common.ctaSiteSurvey')}
               </a>
               <a
                 href={`tel:${siteConfig.phone}`}
-                className="inline-flex items-center justify-center px-6 py-3 rounded-radius-sm border-2 border-accent text-accent font-medium text-small hover:bg-accent hover:text-bg-primary transition-colors min-h-[44px]"
+                className="pointer-events-auto inline-flex items-center justify-center px-6 py-3 rounded-radius-sm border-2 border-accent text-accent font-medium text-small hover:bg-accent hover:text-bg-primary transition-colors min-h-[44px]"
               >
                 {t('common.callNowPrefix')} {siteConfig.phoneFormatted}
               </a>
@@ -135,11 +146,6 @@ export default function Hero() {
             >
               {t('hero.supportingLine')}
             </motion.p>
-          </div>
-
-          {/* Hero Visual Carousel */}
-          <div className="relative aspect-[4/3] lg:aspect-square rounded-radius-lg overflow-hidden bg-bg-secondary border border-border">
-            <Carousel slides={heroSlides} ariaLabel={t('hero.carouselAriaLabel')} />
           </div>
         </motion.div>
       </div>
