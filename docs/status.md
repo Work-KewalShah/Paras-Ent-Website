@@ -4,10 +4,11 @@ This file is updated at the end of every session. It is the single source of tru
 
 ---
 
-## Status: SESSION 04 COMPLETE
-## Last updated: 2026-09-12 by Claude (session 04 — implementation and verification complete)
-## Current session: 04 — Case Studies + Partnerships + StatsRow improvements (plan approved; all implementation finished; final spacing confirmed visually)
-## Previous session: 03 — COMPLETE (Process + Service + B2B + Visual Refinement + Use Cases + Image Interaction, verified)
+## Status: SESSION 12 COMPLETE
+## Last updated: 2026-09-19 by Claude (session 12 — full-bleed hero carousel, implementation and verification complete)
+## Current session: 12 — Full-Bleed Hero Carousel with Text Overlay (all 3 implementation increments committed and verified)
+## Previous session: 11 — COMPLETE (Scroll-Synced Product Showcase, verified)
+## Note: this header block was stale at "SESSION 04" until this update — see the per-session entries below for the real, continuous history through Session 12.
 
 ## Phase 1 (Explore) — COMPLETE
 - Confirmed company-wide StatsRow figures from content-brief.md: 25+ Years, 8,000+ Installations, and 20+ Year Client Relationship
@@ -151,3 +152,27 @@ ProductShowcase, which inherited the existing pattern) — real visitors with OS
 reduced-motion already enabled get a console error and a wasted re-render on first page
 load, sitewide. Full repro details and fix options in `decisions.md`. Worth a dedicated
 future session.
+
+## Session 12 (Full-Bleed Hero Carousel with Text Overlay) — COMPLETE
+Redesigned Hero from a two-column layout (text left, bordered carousel box right) into a
+full-bleed background carousel with the text overlaid on a readable gradient, on both
+desktop and mobile — replacing mobile's separate stacked layout entirely. `Carousel.tsx`
+now always renders via `next/image fill` (no gradient-div/label fallback path), so
+swapping the 4 generated placeholder images for real photography later is a pure
+`hero.ts` content edit. Full gradient values, layout mechanism, and placeholder-generation
+approach logged in `docs/04-process/decisions.md`.
+
+**Verified:** real screenshots at desktop/tablet/mobile in both languages; all 4 slides
+individually checked for text readability; auto-advance, click-to-jump, pause-on-hover,
+and CTA/phone-link clickability all confirmed working after the restructure. `tsc
+--noEmit` and `npm run build` clean throughout.
+
+**Regression caught and fixed during this session's own verification pass (not a
+pre-existing issue):** the text column's full-width `z-10` wrapper was silently
+intercepting pointer events across its entire box, including empty space with no visible
+text, breaking hover-to-pause everywhere except directly over the dots. Fixed with
+`pointer-events-none`/`pointer-events-auto`. Full detail in `decisions.md`.
+
+**Known pre-existing, not introduced here:** the sitewide `useReducedMotion()` hydration
+mismatch (see Session 11 above) also surfaces in Hero/Carousel now, since they use the
+same hook — confirmed as the same already-documented issue, not a new one.

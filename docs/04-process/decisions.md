@@ -243,3 +243,69 @@
   no layout shift.
 - **Discovered but out of scope:** a sitewide pre-existing hydration mismatch for
   `prefers-reduced-motion` users, logged in detail immediately above this entry.
+
+## Session 12: Full-Bleed Hero Carousel with Text Overlay
+- **Decision:** Redesigned Hero from a two-column layout (text left, bordered carousel box
+  right) into a full-bleed background carousel with text overlaid on a readable gradient,
+  on both desktop and mobile — replacing mobile's separate stacked layout entirely.
+- **Layout mechanism:** `Carousel` now renders as an `absolute inset-0` background layer.
+  The text column keeps its existing width by leaving `grid lg:grid-cols-2` in place and
+  simply deleting the second grid child — CSS Grid still allocates two 50% column tracks
+  from the container's own `grid-cols-2` regardless of child count, so the text column's
+  width is measurably identical to before (verified: text's right edge sits at a constant
+  47-48% of viewport width across 1024-1920px, since `max-w-7xl` caps the two-column split
+  once the container hits its cap).
+- **Header offset:** `Hero.tsx`'s `pt-36 lg:pt-[104px]` (144px mobile / 104px desktop) was
+  leftover spacing from the old stacked mobile layout, not a real requirement — Navbar +
+  LanguageBar measure 104px on both breakpoints (`top-8` + `min-h-[72px]` + no `lg:`
+  variant). Flattened to a single `pt-[104px]`.
+- **Gradient values, desktop** (`linear-gradient(to right, rgba(10,10,10,.90) 0%,
+  rgba(10,10,10,.90) 50%, rgba(10,10,10,0) 78%)`): solid through 50% covers the measured
+  worst-case text-right-edge (48.3%) with margin at every desktop width; fades to clear by
+  78% for a smooth ~28-percentage-point blend, not a hard edge.
+- **Gradient values, mobile** — NOT a top/bottom split (real measurement showed text
+  already spans the full available width at mobile sizes, with Hindi wrapping to more
+  lines than English, ruling out a left-right split; and the text block is vertically
+  *centered*, not edge-anchored, ruling out a one-directional top-or-bottom split too).
+  Used a symmetric vertical vignette instead: `linear-gradient(to bottom,
+  rgba(10,10,10,0) 0%, rgba(10,10,10,.90) 15%, rgba(10,10,10,.90) 85%,
+  rgba(10,10,10,0) 100%)`. Measured full text-block height at mobile widths (43% of
+  viewport in English, 48% in Hindi worst-case) centered in the section places the text's
+  real occupied range at 26-74% of viewport height — fully inside the gradient's 15-85%
+  solid zone, with margin on both sides.
+- **Dot legibility:** wrapped the existing dot row in a `bg-[rgba(10,10,10,0.55)]
+  backdrop-blur-md` pill, self-contained so it doesn't interact with either gradient's
+  orientation.
+- **Placeholder images:** no real photography exists yet, and no placeholder asset existed
+  anywhere in the repo either. Generated 4 neutral images (`public/images/hero-placeholder-
+  {1-4}.jpg`) via `sharp` (already a transitive dependency, no new package added): abstract
+  diagonal/radial gradients using the site's existing dark palette tokens plus a
+  low-opacity accent-teal glow, with no baked-in placeholder text. Radial gradients
+  rendered with visible banding at these very subtle opacity ranges; `resvg` (sharp's SVG
+  renderer) has incomplete `<filter>`/`feTurbulence` support, so dithering was done as a
+  raw-buffer pixel-noise post-process instead of an SVG filter, then saved as JPEG (the
+  noise defeats PNG compression — ~1.2MB PNG vs ~80KB JPEG per image).
+  `CarouselSlide` dropped `label`/`backgroundClass` for a required `image` field, and
+  `Carousel.tsx` always renders via `next/image fill object-cover` unconditionally — no
+  gradient-div fallback path — so swapping in real photos later is a pure `hero.ts` path
+  edit with zero component changes.
+- **i18n:** image `alt` text uses a new `hero.carouselImageAlt` key (translated, generic,
+  reused across all slides since they're interchangeable imagery) passed as a prop from
+  `Hero.tsx` into `Carousel.tsx`, following the same pattern already established for
+  `ariaLabel` — not hardcoded English, not left undefined.
+- **Regression found and fixed during verification:** the text column's wrapper is `w-full`
+  and stacked at `z-10` above the carousel — even though most of its box is visually empty
+  (no second grid child anymore), that empty space still captured pointer events by
+  default, silently breaking the carousel's hover-to-pause behavior everywhere except
+  directly over the `z-20` dots. Caught via a Playwright hover test that timed out with
+  "subtree intercepts pointer events." Fixed with `pointer-events-none` on the text
+  wrapper and `pointer-events-auto` on the two CTA links.
+- **Verified:** real screenshots at desktop (1440px)/tablet (820px)/mobile (390px), both
+  languages; all 4 slides individually checked for text readability against their actual
+  gradient blob position; auto-advance, click-to-jump, pause-on-hover (including hovering
+  empty space with no visible text), and CTA/phone-link clickability all confirmed working
+  post-restructure. `tsc --noEmit` and `npm run build` clean throughout all 3 increments.
+- **Known pre-existing, not introduced here:** the sitewide `useReducedMotion()` hydration
+  mismatch (logged in the Session 11 entry above) also surfaces in `Hero.tsx`/`Carousel.tsx`
+  now, since they use the same hook — confirmed via a `reducedMotion: 'reduce'` Playwright
+  context, same React error #418 as already documented, not a new failure mode.
