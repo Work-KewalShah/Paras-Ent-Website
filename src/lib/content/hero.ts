@@ -15,4 +15,8 @@ export const heroSlides = [
     id: "slide-4",
     image: "/images/hero-placeholder-4.jpg",
   },
+  {
+    id: "slide-5",
+    image: "/images/hero-placeholder-5.jpg",
+  },
 ];
