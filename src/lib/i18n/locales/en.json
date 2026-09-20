@@ -171,6 +171,7 @@
   "footer": {
     "quickLinksHeading": "Quick Links",
     "contactUsHeading": "Contact Us",
+    "getDirectionsButton": "Get Direction on Maps",
     "copyrightTemplate": "© {{year}} Paras Enterprises. All rights reserved."
   },
   "imageModal": {

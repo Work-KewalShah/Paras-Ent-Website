@@ -171,6 +171,7 @@
   "footer": {
     "quickLinksHeading": "क्विक लिंक्स",
     "contactUsHeading": "संपर्क करें",
+    "getDirectionsButton": "Google Maps पर दिशा पाएं",
     "copyrightTemplate": "© {{year}} Paras Enterprises. सर्वाधिकार सुरक्षित।"
   },
   "imageModal": {
