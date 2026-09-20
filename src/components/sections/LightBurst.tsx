@@ -104,6 +104,55 @@ function ThemeIcon({ icon, className }: { icon: LightBurstIcon; className?: stri
   }
 }
 
+const SCATTER_RADIUS = 140;
+const SCATTER_FORCE = 4.4;
+const VELOCITY_DAMPING = 0.88;
+const OFFSET_DECAY = 0.94;
+
+interface PointerState {
+  x: number;
+  y: number;
+  active: boolean;
+}
+
+function updateLines(
+  lines: LineState[],
+  pointer: PointerState,
+  cssWidth: number,
+  cssHeight: number,
+  timestamp: number
+) {
+  const baseX = cssWidth / 2;
+  const baseY = cssHeight;
+
+  for (const line of lines) {
+    if (pointer.active) {
+      const sway = Math.sin(timestamp * 0.0009 + line.phase) * 6;
+      const length = line.baseLength + sway;
+      const naturalTipX = baseX + Math.cos(line.angle) * length;
+      const naturalTipY = baseY + Math.sin(line.angle) * length;
+      const tipX = naturalTipX + line.offsetX;
+      const tipY = naturalTipY + line.offsetY;
+
+      const dx = tipX - pointer.x;
+      const dy = tipY - pointer.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < SCATTER_RADIUS && distance > 0.0001) {
+        const force = ((SCATTER_RADIUS - distance) / SCATTER_RADIUS) * SCATTER_FORCE;
+        line.velX += (dx / distance) * force;
+        line.velY += (dy / distance) * force;
+      }
+    }
+
+    line.velX *= VELOCITY_DAMPING;
+    line.velY *= VELOCITY_DAMPING;
+    line.offsetX += line.velX;
+    line.offsetY += line.velY;
+    line.offsetX *= OFFSET_DECAY;
+    line.offsetY *= OFFSET_DECAY;
+  }
+}
+
 function drawFrame(
   ctx: CanvasRenderingContext2D,
   cssWidth: number,
@@ -163,6 +212,7 @@ export const LightBurst = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linesRef = useRef<LineState[] | null>(null);
   const themeIndexRef = useRef(activeThemeIndex);
+  const pointerRef = useRef<PointerState>({ x: 0, y: 0, active: false });
 
   useEffect(() => {
     themeIndexRef.current = activeThemeIndex;
@@ -186,14 +236,31 @@ export const LightBurst = () => {
     canvas.height = cssHeight * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+    function onPointerMove(e: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      pointerRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, active: true };
+    }
+    function onPointerLeave() {
+      pointerRef.current.active = false;
+    }
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerleave', onPointerLeave);
+    canvas.addEventListener('pointercancel', onPointerLeave);
+
     let rafId: number;
     function loop(timestamp: number) {
+      updateLines(lines, pointerRef.current, cssWidth, cssHeight, timestamp);
       drawFrame(ctx!, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current], timestamp);
       rafId = requestAnimationFrame(loop);
     }
     rafId = requestAnimationFrame(loop);
 
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
+      canvas.removeEventListener('pointercancel', onPointerLeave);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
