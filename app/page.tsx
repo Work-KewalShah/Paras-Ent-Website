@@ -26,6 +26,10 @@ export default function Home() {
       </div>
       <B2BSection />
       <div className="bg-[var(--color-bg-primary,#0A0A0A)]">
+        <StatsRow stats={statsRowData} />
+      </div>
+      <LightBurstDynamic />
+      <div className="bg-[var(--color-bg-primary,#0A0A0A)]">
         <TrustPillars />
       </div>
       <div className="bg-[var(--color-bg-secondary,#141414)]">
@@ -37,10 +41,6 @@ export default function Home() {
       <div className="bg-[var(--color-bg-secondary,#141414)]">
         <ServiceApproach />
       </div>
-      <div className="bg-[var(--color-bg-primary,#0A0A0A)]">
-        <StatsRow stats={statsRowData} />
-      </div>
-      <LightBurstDynamic />
       <div className="bg-[var(--color-bg-secondary,#141414)]">
         <CaseStudiesDynamic />
       </div>
