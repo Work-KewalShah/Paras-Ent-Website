@@ -4,10 +4,10 @@ This file is updated at the end of every session. It is the single source of tru
 
 ---
 
-## Status: SESSION 12 COMPLETE
-## Last updated: 2026-09-19 by Claude (session 12 — full-bleed hero carousel, implementation and verification complete)
-## Current session: 12 — Full-Bleed Hero Carousel with Text Overlay (all 3 implementation increments committed and verified)
-## Previous session: 11 — COMPLETE (Scroll-Synced Product Showcase, verified)
+## Status: SESSION 13 COMPLETE
+## Last updated: 2026-09-20 by Claude (session 13 — interactive scattering light burst, implementation and verification complete)
+## Current session: 13 — Interactive Scattering Light Burst (all 5 implementation increments committed and verified)
+## Previous session: 12 — COMPLETE (Full-Bleed Hero Carousel with Text Overlay, verified)
 ## Note: this header block was stale at "SESSION 04" until this update — see the per-session entries below for the real, continuous history through Session 12.
 
 ## Phase 1 (Explore) — COMPLETE
@@ -176,3 +176,35 @@ text, breaking hover-to-pause everywhere except directly over the dots. Fixed wi
 **Known pre-existing, not introduced here:** the sitewide `useReducedMotion()` hydration
 mismatch (see Session 11 above) also surfaces in Hero/Carousel now, since they use the
 same hook — confirmed as the same already-documented issue, not a new one.
+
+## Session 13 (Interactive Scattering Light Burst) — COMPLETE
+New purely decorative canvas section between `StatsRow` and `CaseStudies`: ~160 lines
+radiating from bottom-center that bend/scatter away from the pointer or finger and spring
+back, six selectable themes swapping the background gradient and line/dot colors. New
+files: `src/components/sections/LightBurst.tsx`, `LightBurstLoader.tsx` (client wrapper
+holding the `ssr: false` dynamic import, since Next's App Router refuses that option
+directly inside `page.tsx`, a Server Component), `src/lib/content/light-burst-themes.ts`.
+Full architecture — refs-only RAF loop, IntersectionObserver pause, reduced-motion
+gating, touch handling — logged in `docs/04-process/decisions.md`.
+
+**Verified:** all 6 themes render correctly on desktop/tablet/mobile in both languages;
+real pointer/touch interaction confirmed (bend-away + spring-back physics, including a
+dispatched `pointerType: 'touch'` event on a mobile viewport); reduced-motion confirmed
+genuinely static via `canvas.toDataURL()` byte-identity, not assumption; RAF loop
+confirmed to actually pause off-screen and resume back in view, same byte-identity
+method; resize handling confirmed correct after a real viewport change; no
+`preventDefault()`/`touch-action` blocking scroll, confirmed directly. `tsc --noEmit` and
+`npm run build` clean throughout all 5 increments.
+
+**Performance:** a controlled A/B Lighthouse mobile run (LightBurst temporarily removed,
+same machine/invocation) isolated its real cost at −3 points / +110ms Total Blocking
+Time, CLS unchanged at 0. The full-page score (80) is lower than Session 08's documented
+87, but the isolated "without LightBurst" run on this same environment scored 83 — most
+of that gap is pre-existing environment/Lighthouse-version variance, not a regression
+introduced this session. Not optimized further (e.g. deferring the dynamic import itself
+until scroll-proximity) since that wasn't part of the agreed plan; flagged as a possible
+future increment.
+
+**Known pre-existing, not introduced here:** same sitewide `useReducedMotion()` hydration
+mismatch as Sessions 11-12, now also present in this component since it uses the same
+hook — confirmed same React error #418, not a new failure mode.

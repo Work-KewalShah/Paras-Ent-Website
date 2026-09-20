@@ -309,3 +309,86 @@
   mismatch (logged in the Session 11 entry above) also surfaces in `Hero.tsx`/`Carousel.tsx`
   now, since they use the same hook — confirmed via a `reducedMotion: 'reduce'` Playwright
   context, same React error #418 as already documented, not a new failure mode.
+
+## Session 13: Interactive Scattering Light Burst
+- **Decision:** Added a purely decorative canvas visual — ~160 lines radiating from
+  bottom-center, bending/scattering away from the pointer or finger, six selectable
+  themes swapping the background gradient and line/dot colors. Placed between `StatsRow`
+  and `CaseStudies` in `page.tsx`, with no wrapping `bg-primary`/`bg-secondary` div — the
+  canvas's own theme gradient replaces the alternating-background convention entirely for
+  this one section.
+- **Component:** `src/components/sections/LightBurst.tsx` (named + default export,
+  matching `CaseStudies.tsx`'s pattern), theme data in
+  `src/lib/content/light-burst-themes.ts` as a plain constants array — deliberately not
+  mapped to the site's semantic design tokens, since this is a separate decorative
+  palette per the confirmed design.
+- **Dynamic import with `ssr: false`:** Next's App Router refuses `ssr: false` inside a
+  Server Component, and `page.tsx` has no `'use client'`. Rather than making the whole
+  page a client component, added a small `LightBurstLoader.tsx` client wrapper that holds
+  the `dynamic(() => import('./LightBurst'), { ssr: false })` call, imported directly (no
+  further `dynamic()` needed) from `page.tsx`. This is a deliberate departure from the
+  `CaseStudies`/`Footer` dynamic-import precedent (neither sets `ssr: false` — they're
+  code-split but still SSR'd); justified here because canvas/RAF/IntersectionObserver
+  setup is entirely client-only with zero server-renderable output.
+- **Refs-only RAF architecture:** line state (angle, base length, phase, offset,
+  velocity), pointer position, and the active theme are all mutable refs, never React
+  state — the RAF loop never triggers a re-render. Only the active theme *index* is React
+  state (drives which pill button shows selected); the long-lived RAF loop reads the
+  current theme via a ref (`themeIndexRef`) kept in sync by a separate one-line effect,
+  so clicking a theme button doesn't tear down and recreate the canvas/context/observer —
+  confirmed via a wrapped `requestAnimationFrame` call counter (continuous native
+  scheduling, not React-render-driven) and confirming the canvas DOM node's identity
+  survives a theme click (no remount).
+- **IntersectionObserver:** single element (the section root), single
+  `entry.isIntersecting` boolean, `rootMargin: '200px'` — not `ProductShowcase.tsx`'s
+  multi-row center-band pattern, which solves a different problem (which of many rows is
+  active) that doesn't apply to a single always-either-visible-or-not decorative section.
+  Going off-screen doesn't just skip drawing a frame: the loop's next scheduled call
+  checks the in-view flag and returns without calling `requestAnimationFrame` again,
+  actually stopping the chain; the observer callback restarts it. Verified via
+  `canvas.toDataURL()` byte-identity checks: static while scrolled away, changing again
+  once scrolled back.
+- **Reduced motion:** `useReducedMotion()` (framer-motion, matching Hero/CaseStudies/
+  Footer's existing convention) is checked before any pointer listener, observer, or
+  `requestAnimationFrame` call is made — the static branch draws exactly one frame (no
+  sway) and never starts the loop, rather than starting and immediately stopping it. The
+  effect depends on `[shouldReduceMotion]` so a live OS-preference toggle mid-visit
+  correctly rebuilds into the right branch. Verified via `canvas.toDataURL()`:
+  byte-identical across a 1.5s window under `reducedMotion: 'reduce'` — genuinely zero
+  animation, not just slow. The React error #418 seen in this mode is the same
+  pre-existing sitewide hydration mismatch already logged above, not a new failure mode.
+- **Touch handling:** pointer tracked via the unified Pointer Events API
+  (`pointermove`/`pointerleave`/`pointercancel`) rather than separate `mousemove`+
+  `touchmove` listeners — confirmed with the user as the modern equivalent, since
+  `pointermove` fires identically to `touchmove` on touch devices. No `preventDefault()`
+  anywhere in the handlers and no `touch-action` override, verified two ways: computed
+  `touch-action` on the canvas is `"auto"`, and a dispatched cancelable `PointerEvent`'s
+  `defaultPrevented` is `false` after the handler runs.
+- **Icons:** no icon library exists anywhere in this project (checked). The six theme
+  icons are hand-drawn inline SVGs matching every other icon's existing stroke convention
+  (24x24 viewBox, `stroke="currentColor"`, `strokeWidth="2"`, round caps/joins) rather
+  than adding a new dependency for six static icons.
+- **Theme picker UI:** reuses `Button`'s existing `primary`/`secondary` variants directly
+  for selected/unselected state — no new button styling introduced. `cn()`'s
+  `tailwind-merge` usage lets a `className="px-4 py-2"` override reliably win over
+  `Button`'s default `px-6 py-3` padding, confirmed before relying on it.
+- **Performance:** a controlled before/after Lighthouse mobile comparison (same machine,
+  same Lighthouse invocation, `LightBurst` temporarily removed from `page.tsx` for the
+  "without" run) isolated its actual cost: −3 performance points, +110ms Total Blocking
+  Time, CLS unchanged at 0 in both runs. The full session (with LightBurst) scored 80 vs.
+  Session 08's documented baseline of 87, but the isolated "without LightBurst" run on
+  this same environment scored 83 — meaning roughly 4 of those 7 points are pre-existing
+  environment/Lighthouse-version variance unrelated to this session, and about 3 points
+  are LightBurst's genuine, modest cost. Not optimized further here (e.g. deferring the
+  dynamic import itself until scroll-proximity, not just pausing the RAF post-mount) since
+  that wasn't part of the agreed plan — flagged as a possible future increment if tighter
+  performance is wanted.
+- **i18n:** six theme labels under `interactiveBurst.themes.*` in both `en.json`/
+  `hi.json`, resolved via `t()` — confirmed no raw/unresolved key strings visible in
+  either language.
+- **Verified:** all 6 themes render with correct colors on both desktop/tablet/mobile;
+  real pointer-move interaction shows lines bending away from the cursor with
+  proportionally larger tip dots, then springing back once the pointer leaves; the same
+  scatter behavior confirmed via a dispatched `PointerEvent` with `pointerType: 'touch'`
+  on a mobile viewport; canvas resizes correctly (buffer width recalculated as
+  `clientWidth * dpr`) after a real viewport resize, no stretching/distortion.
