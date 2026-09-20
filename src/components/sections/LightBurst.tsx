@@ -109,7 +109,8 @@ function drawFrame(
   cssWidth: number,
   cssHeight: number,
   lines: LineState[],
-  theme: LightBurstTheme
+  theme: LightBurstTheme,
+  timestamp?: number
 ) {
   ctx.clearRect(0, 0, cssWidth, cssHeight);
 
@@ -123,7 +124,8 @@ function drawFrame(
   const baseY = cssHeight;
 
   for (const line of lines) {
-    const length = line.baseLength;
+    const sway = timestamp === undefined ? 0 : Math.sin(timestamp * 0.0009 + line.phase) * 6;
+    const length = line.baseLength + sway;
     const naturalTipX = baseX + Math.cos(line.angle) * length;
     const naturalTipY = baseY + Math.sin(line.angle) * length;
     const tipX = naturalTipX + line.offsetX;
@@ -160,6 +162,11 @@ export const LightBurst = () => {
   const [activeThemeIndex, setActiveThemeIndex] = useState(DEFAULT_THEME_INDEX);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linesRef = useRef<LineState[] | null>(null);
+  const themeIndexRef = useRef(activeThemeIndex);
+
+  useEffect(() => {
+    themeIndexRef.current = activeThemeIndex;
+  }, [activeThemeIndex]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -170,6 +177,7 @@ export const LightBurst = () => {
     if (!linesRef.current) {
       linesRef.current = generateLines(LINE_COUNT);
     }
+    const lines = linesRef.current;
 
     const dpr = window.devicePixelRatio || 1;
     const cssWidth = canvas.clientWidth;
@@ -178,8 +186,15 @@ export const LightBurst = () => {
     canvas.height = cssHeight * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    drawFrame(ctx, cssWidth, cssHeight, linesRef.current, lightBurstThemes[activeThemeIndex]);
-  }, [activeThemeIndex]);
+    let rafId: number;
+    function loop(timestamp: number) {
+      drawFrame(ctx!, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current], timestamp);
+      rafId = requestAnimationFrame(loop);
+    }
+    rafId = requestAnimationFrame(loop);
+
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
   return (
     <section className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
