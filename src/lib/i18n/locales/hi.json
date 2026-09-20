@@ -135,6 +135,16 @@
     "installations": "इंस्टॉलेशन",
     "yearClientRelationship": "साल का ग्राहक रिश्ता"
   },
+  "interactiveBurst": {
+    "themes": {
+      "preDawn": "भोर से पहले",
+      "sunrise": "सूर्योदय",
+      "daytime": "दिन",
+      "dusk": "सांझ",
+      "sunset": "सूर्यास्त",
+      "night": "रात"
+    }
+  },
   "caseStudies": {
     "headline": "केस स्टडीज़",
     "subheadline": "हमारे समर्पित तरीके से मिली सफलता को देखें",

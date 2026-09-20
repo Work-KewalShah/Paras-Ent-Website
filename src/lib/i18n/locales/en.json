@@ -135,6 +135,16 @@
     "installations": "Installations",
     "yearClientRelationship": "Year Client Relationship"
   },
+  "interactiveBurst": {
+    "themes": {
+      "preDawn": "Pre-dawn",
+      "sunrise": "Sunrise",
+      "daytime": "Daytime",
+      "dusk": "Dusk",
+      "sunset": "Sunset",
+      "night": "Night"
+    }
+  },
   "caseStudies": {
     "headline": "Case Studies",
     "subheadline": "Experience the success with our dedicated approach",

@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic';
 import { LanguageBar } from '@/components/ui/LanguageBar';
+import LightBurstDynamic from '@/components/sections/LightBurstLoader';
 import Navbar from '@/components/sections/Navbar';
 import Hero from '@/components/sections/Hero';
 import TrustPillars from '@/components/sections/TrustPillars';
@@ -39,6 +40,7 @@ export default function Home() {
       <div className="bg-[var(--color-bg-primary,#0A0A0A)]">
         <StatsRow stats={statsRowData} />
       </div>
+      <LightBurstDynamic />
       <div className="bg-[var(--color-bg-secondary,#141414)]">
         <CaseStudiesDynamic />
       </div>
