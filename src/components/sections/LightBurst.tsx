@@ -317,12 +317,20 @@ export const LightBurst = () => {
           ))}
         </div>
 
-        <div className="relative rounded-radius-lg overflow-hidden">
+        <div className="relative">
           <canvas
             ref={canvasRef}
-            className="block w-full"
+            className="block w-full rounded-radius-lg"
             style={{ height: CANVAS_HEIGHT }}
             aria-hidden="true"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 rounded-t-radius-lg pointer-events-none z-10"
+            style={{
+              height: '80px',
+              background: 'linear-gradient(to bottom, var(--color-bg-primary, #0A0A0A) 0%, transparent 100%)',
+            }}
           />
         </div>
       </div>
