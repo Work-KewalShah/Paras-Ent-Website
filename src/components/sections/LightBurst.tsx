@@ -13,9 +13,9 @@ import {
 
 const LINE_COUNT = 160;
 const ANGULAR_SPREAD = 1.1 * Math.PI;
-const MIN_LENGTH = 90;
-const LENGTH_RANGE = 160;
-const CANVAS_HEIGHT = 480;
+const MIN_LENGTH = 130;
+const LENGTH_RANGE = 260;
+const CANVAS_HEIGHT = 540;
 
 interface LineState {
   angle: number;
@@ -106,9 +106,10 @@ function ThemeIcon({ icon, className }: { icon: LightBurstIcon; className?: stri
 }
 
 const SCATTER_RADIUS = 140;
-const SCATTER_FORCE = 4.4;
+const SCATTER_FORCE = 3.8;
 const VELOCITY_DAMPING = 0.88;
 const OFFSET_DECAY = 0.94;
+const CURVE_BOW_FACTOR = 0.6;
 
 interface PointerState {
   x: number;
@@ -182,8 +183,8 @@ function drawFrame(
     const tipY = naturalTipY + line.offsetY;
     const displacement = Math.sqrt(line.offsetX * line.offsetX + line.offsetY * line.offsetY);
 
-    const controlX = (baseX + naturalTipX) / 2 + line.offsetX;
-    const controlY = (baseY + naturalTipY) / 2 + line.offsetY;
+    const controlX = (baseX + naturalTipX) / 2 + line.offsetX * CURVE_BOW_FACTOR;
+    const controlY = (baseY + naturalTipY) / 2 + line.offsetY * CURVE_BOW_FACTOR;
 
     const opacity = Math.min(0.85, 0.3 + displacement * 0.045);
     const width = 1 + Math.min(1.4, displacement * 0.05);
