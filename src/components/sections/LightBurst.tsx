@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import {
   lightBurstThemes,
@@ -208,8 +209,10 @@ function drawFrame(
 
 export const LightBurst = () => {
   const { t } = useTranslation();
+  const shouldReduceMotion = useReducedMotion();
   const [activeThemeIndex, setActiveThemeIndex] = useState(DEFAULT_THEME_INDEX);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const linesRef = useRef<LineState[] | null>(null);
   const themeIndexRef = useRef(activeThemeIndex);
   const pointerRef = useRef<PointerState>({ x: 0, y: 0, active: false });
@@ -220,7 +223,8 @@ export const LightBurst = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const section = sectionRef.current;
+    if (!canvas || !section) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -229,12 +233,26 @@ export const LightBurst = () => {
     }
     const lines = linesRef.current;
 
-    const dpr = window.devicePixelRatio || 1;
-    const cssWidth = canvas.clientWidth;
-    const cssHeight = canvas.clientHeight;
-    canvas.width = cssWidth * dpr;
-    canvas.height = cssHeight * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    let cssWidth = canvas.clientWidth;
+    let cssHeight = canvas.clientHeight;
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      cssWidth = canvas!.clientWidth;
+      cssHeight = canvas!.clientHeight;
+      canvas!.width = cssWidth * dpr;
+      canvas!.height = cssHeight * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    if (shouldReduceMotion) {
+      // Static fallback: one draw at base positions, no sway, no scatter, no RAF,
+      // no pointer tracking, no IntersectionObserver — nothing left running.
+      drawFrame(ctx, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current]);
+      return () => window.removeEventListener('resize', resizeCanvas);
+    }
 
     function onPointerMove(e: PointerEvent) {
       const rect = canvas!.getBoundingClientRect();
@@ -247,24 +265,42 @@ export const LightBurst = () => {
     canvas.addEventListener('pointerleave', onPointerLeave);
     canvas.addEventListener('pointercancel', onPointerLeave);
 
-    let rafId: number;
+    let rafId: number | null = null;
+    let inView = false;
+
     function loop(timestamp: number) {
+      if (!inView) {
+        rafId = null;
+        return;
+      }
       updateLines(lines, pointerRef.current, cssWidth, cssHeight, timestamp);
       drawFrame(ctx!, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current], timestamp);
       rafId = requestAnimationFrame(loop);
     }
-    rafId = requestAnimationFrame(loop);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView && rafId === null) {
+          rafId = requestAnimationFrame(loop);
+        }
+      },
+      { rootMargin: '200px', threshold: 0 }
+    );
+    observer.observe(section);
 
     return () => {
+      window.removeEventListener('resize', resizeCanvas);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointercancel', onPointerLeave);
-      cancelAnimationFrame(rafId);
+      observer.disconnect();
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [shouldReduceMotion]);
 
   return (
-    <section className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section ref={sectionRef} className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           {lightBurstThemes.map((theme, i) => (
