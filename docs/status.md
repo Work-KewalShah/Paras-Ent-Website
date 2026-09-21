@@ -215,3 +215,40 @@ same-token background pairing (ServiceApproach → CaseStudies, both bg-secondar
 the moved block's wildcard LightBurst gradient previously broke up that stretch.
 Confirmed via screenshot this reads as a continuous dark section, not a visible
 seam/mistake — accepted as-is, no fix needed.
+
+## Session 14 (Global Site-Wide Theming) — COMPLETE
+LightBurst's theme selector now controls the entire site's color scheme, not just its own
+canvas — backgrounds, text, buttons, borders, and Carousel's dot indicators all re-skin
+live across 6 themes. Colors moved out of `@theme inline` into the runtime-overridable
+`@theme` + `:root` + `:root[data-site-theme]` pattern (same one proven for type-scale/
+Hindi fonts). New `SiteThemeProvider` (mirrors `I18nProvider`'s SSR-safe pattern exactly)
+holds the shared theme index; LightBurst reads/writes it instead of owning local state.
+No persistence, matching the language/font-size convention. Full architecture, the
+HSL-derivation method for accentHover/accentMuted/borderAccent, the phantom-CSS-variable
+audit and fixes, and the transition-smoothness reasoning are logged in
+`docs/04-process/decisions.md`.
+
+**Found and fixed along the way:** four CSS variables referenced via `var()` throughout
+several components but never actually declared anywhere (`--color-bg-card`,
+`--color-border-card`, `--color-border-subtle`, `--color-bg-accent`), plus `Card.tsx`
+referencing a `--glow-accent` name that never matched the real `--shadow-glow-accent`
+token — both bug classes meant those elements were permanently stuck on a hardcoded
+fallback, immune to any theming. Fixing `--color-bg-accent` also fixed a live pre-existing
+bug: ServiceApproach's icon-circle backgrounds were actually rendering faintly green
+(a stale leftover accent color) instead of cyan — confirmed via direct A/B computed-style
+comparison against a pre-Session-14 build, and the one intentional exception to Daytime's
+otherwise-confirmed pixel-identity.
+
+**Verified:** full-page screenshots (not just LightBurst's section) under all 6 themes at
+desktop and mobile — all correct, zero console errors. Daytime pixel-identical to
+pre-Session-14 except the flagged ServiceApproach fix above; the only other screenshot
+differences found were expected independent-load nondeterminism (canvas RNG, stats
+count-up timing, partner-logo marquee position), not regressions. No hydration mismatch
+from `SiteThemeProvider` itself (confirmed via raw SSR HTML and repeated fresh loads); the
+one hydration error that does appear under `prefers-reduced-motion` was isolated via an
+A/B worktree build and confirmed to be the same already-documented sitewide
+`useReducedMotion()` mismatch from Session 11, not new. Hindi + font-scale + site-theme
+confirmed composing correctly under two different non-Daytime themes at once. The 300ms
+sitewide color cross-fade verified smooth via real frame-by-frame sampling, not just
+correct on paper. Lighthouse mobile Performance 89 (vs. Session 13's documented isolated
+baseline of 80), desktop 99/97/100/100 with CLS 0 — no regression.

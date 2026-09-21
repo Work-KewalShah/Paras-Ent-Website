@@ -412,3 +412,107 @@ transition. Two pre-existing bugs found and fixed along the way: under reduced m
 theme clicks and window resizes never triggered a redraw (canvas only painted once on
 initial mount) — both now correctly redraw via the same mechanism the transition logic
 required.
+
+## Session 14 (Global Site-Wide Theming) — COMPLETE
+Lifted LightBurst's theme selector from "affects only its own canvas" to "controls the
+entire site's color scheme." Selecting a theme now re-skins backgrounds, text, buttons,
+borders, and the Carousel's dot indicators sitewide, live. LightBurst's own decorative
+canvas palette (`light-burst-themes.ts`, locked in Session 13) is untouched — only the
+shared *selection index* became global; the sitewide UI palette is a separate,
+independently-designed, contrast-checked table (see finalized values in
+`docs/04-process/session-14.md`).
+
+**CSS architecture:** all color tokens moved out of `@theme inline` into the same
+non-inline `@theme` + `:root` + `:root[data-attr]` pattern already proven for type-scale
+(Session 08) and Hindi fonts (Session 10) — required because an `inline` theme value
+cannot be overridden at runtime. Added `:root[data-site-theme="..."]` blocks for the 5
+non-Daytime themes, applied via a new `SiteThemeProvider` (mirrors `I18nProvider` exactly:
+`'use client'`, Context holds the index, a `useEffect` writes
+`document.documentElement.setAttribute('data-site-theme', ...)`, default state matches
+Daytime so SSR output is always correct pre-hydration — confirmed no `data-site-theme`
+attribute is present in raw SSR HTML). No persistence, matching the existing
+language/font-size convention — resets to Daytime every visit.
+
+**Derived tokens — HSL-delta method:** `accentHover`/`accentMuted`/`borderAccent` weren't
+specified per-theme in the finalized palette, so they were derived by converting Daytime's
+existing accent/hover/muted to HSL, measuring the exact ΔS/ΔL Daytime's hover and muted
+already have from its accent (hover: same hue, S +2.9pts, L +10.8pts; muted: same hue, S
+−15.4pts, L −25.3pts), then applying those same deltas to each theme's own accent
+hue/S/L and converting back to hex. `border-accent` is simply accent at 40% alpha in
+Daytime, reproduced the same way per theme. Verified the method by re-deriving Daytime's
+own hover/muted from the deltas and confirming they reproduce the real values to within
+1-2 units (rounding only).
+
+**Phantom-variable audit and fixes:** grepping every component for hex values that might
+bypass the token system (this session's version of the Session 08 type-scale check) found
+every hex was already inside a `var(--token, #fallback)` expression — but four variable
+names were referenced and never actually declared anywhere in `globals.css`
+(`--color-bg-card`, `--color-border-card`, `--color-border-subtle`, `--color-bg-accent`),
+meaning they always silently rendered their hardcoded fallback, immune to any theming
+(current or this session's). Also found, while assembling the CSS diff: `Card.tsx`'s hover
+glow referenced `--glow-accent`, a name that never matched the actually-declared
+`--shadow-glow-accent` token — same bug class, just a naming mismatch instead of a missing
+declaration. All now properly declared/renamed and given per-theme values (`bg-card` =
+that theme's `bg-secondary`; `border-card` = that theme's `bg-elevated` +6 per RGB channel;
+`border-subtle` = `bg-elevated` −2 per channel — both offsets measured from Daytime's
+existing fallback-to-`bg-elevated` relationship). `--color-bg-accent` was split into two
+tokens (`--color-bg-accent` / `--color-bg-accent-strong`) because its call sites used two
+different baked alpha levels (`#00E59910` / `#00E59920`) that a single token would have
+collapsed into one. Carousel's dot indicators — explicitly named by Kewal as something
+that must change with the theme — were confirmed already correctly wired to the real
+`--color-accent` token; only their fallback text was stale.
+
+**Daytime pixel-identity exception (intentional, approved):** `--color-bg-accent`'s
+phantom fallback was the stale `#00E599` (leftover green from an earlier accent color),
+not the current real accent — meaning ServiceApproach's icon-circle backgrounds were
+*actually rendering faintly green*, a live pre-existing bug invisible until this session's
+audit. Declaring the token with the current real accent (`#2DD4E8`) instead of literally
+preserving the buggy green fixes it as a side effect, at the cost of a narrow, deliberate
+exception to "Daytime stays pixel-identical." Confirmed via a direct A/B build (git
+worktree at the pre-Session-14 commit, same viewport/scroll/wait conditions): computed
+style sampled directly on the icon circle reads `rgba(0, 229, 153, 0.063)` on the old build
+vs `rgba(45, 212, 232, 0.063)` on the new one — everything else byte-for-byte identical in
+that region. Full-page pixel-diff across the entire site found zero other differences
+beyond expected independent-page-load nondeterminism (LightBurst's `Math.random()` line
+generation, StatsRow's in-flight count-up animation phase, the partner-logo marquee's
+scroll position, and ProductShowcase image lazy-load timing) — none are regressions.
+
+**Stale fallback cleanup:** several call sites already correctly referenced real, declared
+tokens (`--color-accent`) but with a stale `#00E599` (leftover green) fallback instead of
+the current `#2DD4E8` — cosmetic and inert since the fallback never activates while the
+real token exists, but corrected in the same pass across `Carousel.tsx`, `StatsRow.tsx`,
+`ServiceApproach.tsx`, `ProcessTimeline.tsx`, `ProductCard.tsx`, and `CaseStudyCard.tsx`
+since those files were already being touched for the phantom-variable fix.
+
+**Transition smoothness:** chose a universal selector scoped strictly to
+`background-color`/`color`/`border-color` (300ms ease) over matching LightBurst's own
+450ms cross-fade or an unscoped `transition: all`. This is safe against fighting
+component-level hover animations because a Tailwind `transition-colors` utility sets
+`transition` via a class selector (specificity 0,1,0), which always outranks the universal
+selector (0,0,0) regardless of source order — confirmed by direct testing, no interaction
+animations were affected. 300ms (vs. LightBurst's 450ms) was chosen because many
+simultaneous sitewide color changes read as slower than one decorative canvas at the same
+duration. Verified in practice, not just on paper: sampling `body`'s computed
+`background-color` every animation frame after a real click showed genuine gradual
+interpolation (e.g. Daytime `rgb(10,10,10)` through intermediate values to Sunset's exact
+`rgb(33,10,27)` by ~300ms), not an instant snap — reads as a deliberate, visible cross-fade
+and pairs naturally with LightBurst's own longer 450ms canvas fade finishing slightly
+after the sitewide chrome. No tuning needed.
+
+**Verified:** full-page screenshots (top to bottom, not just LightBurst's section) under
+all 6 themes at both desktop (1440px) and mobile (390px) — all backgrounds, text, buttons,
+borders, and cards re-skin correctly with zero console errors. Daytime confirmed
+pixel-identical to the pre-Session-14 site except the one flagged/approved exception
+above. No hydration mismatch from `SiteThemeProvider` itself across repeated fresh loads
+(zero console output of any kind, and raw SSR HTML confirmed to have no `data-site-theme`
+attribute) — the one hydration error that does appear (`React error #418` under
+`prefers-reduced-motion: reduce`) was isolated via an A/B worktree build and confirmed
+present identically before any Session 14 change: it's the same already-documented
+sitewide `useReducedMotion()` mismatch from Session 11, not something this session
+introduced. Hindi + font-scale + site-theme confirmed composing correctly together under
+two different non-Daytime themes (Sunrise, Night) simultaneously, all three
+`data-*`/CSS-variable states correct with zero errors. Lighthouse: mobile Performance 89
+(vs. Session 13's documented isolated baseline of 80), desktop Performance 99 /
+Accessibility 97 / Best Practices 100 / SEO 100 / CLS 0 — no regression; small differences
+from prior sessions' numbers are consistent with the already-documented
+environment/Lighthouse-version variance, not something newly introduced here.
