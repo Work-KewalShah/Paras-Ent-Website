@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useFontScale } from '@/components/providers/FontScaleProvider';
 
 const TRACK_CLASSES =
-  'flex items-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-0.5';
+  'flex items-center justify-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-0.5';
 
 // Compact desktop-only equivalent of LanguageBar's 44x44 tap-target overlay.
 // -6px inset + gap-1.5 (6px) between the two stacked tracks means each

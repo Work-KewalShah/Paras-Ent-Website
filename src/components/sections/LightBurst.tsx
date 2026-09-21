@@ -422,7 +422,7 @@ export const LightBurst = () => {
   }, [shouldReduceMotion]);
 
   return (
-    <section ref={sectionRef} className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section id="themes" ref={sectionRef} className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           {lightBurstThemes.map((theme, i) => (

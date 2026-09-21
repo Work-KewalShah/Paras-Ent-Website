@@ -1,5 +1,6 @@
 export const siteConfig = {
   navLinks: [
+    { labelKey: 'navbar.links.themes', href: '#themes' },
     { labelKey: 'navbar.links.products', href: '#products' },
     { labelKey: 'navbar.links.process', href: '#process' },
     { labelKey: 'navbar.links.caseStudies', href: '#case-studies' },
