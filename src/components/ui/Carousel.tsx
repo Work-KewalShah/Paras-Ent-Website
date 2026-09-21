@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 export interface CarouselSlide {
   id: string;
   image: string;
+  alt: string;
 }
 
 export interface CarouselProps {
@@ -17,7 +18,6 @@ export interface CarouselProps {
   transitionDurationMs?: number;
   easing?: [number, number, number, number];
   ariaLabel: string;
-  imageAlt: string;
 }
 
 export const Carousel: React.FC<CarouselProps> = ({
@@ -26,7 +26,6 @@ export const Carousel: React.FC<CarouselProps> = ({
   transitionDurationMs = 600,
   easing = [0.16, 1, 0.3, 1],
   ariaLabel,
-  imageAlt,
 }) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -121,7 +120,7 @@ export const Carousel: React.FC<CarouselProps> = ({
         >
           <Image
             src={currentSlide.image}
-            alt={imageAlt}
+            alt={currentSlide.alt}
             fill
             priority={currentIndex === 0}
             className="object-cover object-center"

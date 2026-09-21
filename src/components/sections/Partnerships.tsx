@@ -77,6 +77,11 @@ export const Partnerships = () => {
           .animate-marquee {
             animation: marquee 48s linear infinite;
           }
+          @media (max-width: 767px) {
+            .animate-marquee {
+              animation-duration: 24s;
+            }
+          }
           @media (prefers-reduced-motion: reduce) {
             .animate-marquee { animation: none; }
           }

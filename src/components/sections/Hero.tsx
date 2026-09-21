@@ -10,6 +10,12 @@ export default function Hero() {
   const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
 
+  const translatedHeroSlides = heroSlides.map((slide) => ({
+    id: slide.id,
+    image: slide.image,
+    alt: t(slide.altKey),
+  }));
+
   const containerVariants = {
     hidden: {},
     show: {
@@ -53,9 +59,8 @@ export default function Hero() {
       <div className="hidden md:block">
         <div className="absolute inset-0">
           <Carousel
-            slides={heroSlides}
+            slides={translatedHeroSlides}
             ariaLabel={t('hero.carouselAriaLabel')}
-            imageAlt={t('hero.carouselImageAlt')}
           />
         </div>
 
@@ -218,9 +223,8 @@ export default function Hero() {
           {/* Hero Visual Carousel */}
           <div className="relative aspect-[4/3] rounded-radius-lg overflow-hidden bg-bg-secondary border border-border">
             <Carousel
-              slides={heroSlides}
+              slides={translatedHeroSlides}
               ariaLabel={t('hero.carouselAriaLabel')}
-              imageAlt={t('hero.carouselImageAlt')}
             />
           </div>
         </motion.div>

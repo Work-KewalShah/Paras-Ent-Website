@@ -29,7 +29,13 @@
     "subheadline": "25+ years of trusted security and service — protecting homes, businesses, and institutions across Bilaspur.",
     "supportingLine": "8,000+ installations across Bilaspur and nearby areas",
     "carouselAriaLabel": "Hero visual carousel",
-    "carouselImageAlt": "Security and automation solutions by Paras Enterprises"
+    "slides": {
+      "slide1": "A team meeting in a modern office, with laptops and a presentation screen",
+      "slide2": "A security sign on a chain-link fence reading \"This area is under 24 hour video surveillance\"",
+      "slide3": "A sign reading \"Smile, you're on camera\" next to a CCTV camera icon",
+      "slide4": "A flat-lay of smart home devices — bulbs, plugs, sensors, and a security camera — connected to a central hub",
+      "slide5": "A security camera, smart hub, and smartphone displayed together"
+    }
   },
   "carousel": {
     "dotsAriaLabel": "Carousel slides",

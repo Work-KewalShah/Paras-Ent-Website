@@ -953,3 +953,89 @@ Reverted pending approval, then re-applied and re-verified identically once appr
 the tested values; all 6 themes reconfirmed rendering with zero console errors; reduced
 motion reconfirmed unaffected (same byte-identity checks as above — Daytime birds still
 fully skipped, Night stars still static); `tsc`/build clean.
+
+## Known bug (open, not fixed): hold-then-drag scroll-block doesn't actually block scroll
+**Discovery context:** Found during live-site verification after the Firebase Hosting
+deploy (static export), while confirming mobile touch interactions still work on
+`https://parasenterprises.web.app`. Pre-existing in the `setupHoldGesture()` logic
+documented above under "Deliberate touch-interaction exception: hold-then-drag
+scroll-block on LightBurst" (Session 16-era) — **not introduced by the deploy or the
+static-export changes**, and not a regression from anything done this session.
+
+**Bug:** the held-then-drag gesture (hold ≥250ms, then drag) is supposed to block page
+scroll so the drag drives the scatter effect instead. On the live site, real synthetic
+touch input (CDP `Input.dispatchTouchEvent`, not a hand-constructed `PointerEvent`) shows
+it does not: the page still scrolls during a held-drag exactly as it does during a quick
+tap-swipe. Instrumented with bubble-phase listeners on `window` to check `defaultPrevented`
+after the canvas's own handlers ran: the `pointermove` event itself does show
+`defaultPrevented: true` (the app's `preventScrollOnMove` handler is wired correctly and
+does fire), but the associated `touchmove` event's `defaultPrevented` stays `false`, and
+`window.scrollY` still advances by the full drag distance.
+
+**Root cause:** Chrome decides whether a touch sequence gets the fast passive-scroll path
+or the blockable path **at `touchstart` time**, based on which non-passive listeners are
+already registered on the target at that moment — not per-event, and not retroactively.
+`setupHoldGesture()`'s non-passive `pointermove` listener is only attached ~250ms *later*,
+inside the hold-timer's `setTimeout` callback (`attachPreventScroll()`, called from
+`onHoldPointerDown`'s timer). By the time that listener exists, Chrome has already
+committed this touch sequence to the passive/scrollable path at `touchstart`, so any later
+`preventDefault()` call — even one that genuinely fires and reports `defaultPrevented: true`
+on the pointer event — has no effect on the underlying touch scroll. This is structural:
+attaching the blocking listener after a delay is fundamentally too late for this browser
+mechanism, regardless of the exact delay chosen.
+
+**Why prior verification missed this:** the Session 16 verification (quoted above) tested
+by directly constructing and dispatching `PointerEvent` objects via `element.dispatchEvent()`
+and reading `defaultPrevented` back off that same object — which correctly shows the
+handler ran and called `preventDefault()`, but never exercises Chrome's actual
+touchstart-time compositor scroll-commit decision, since that only happens with real
+OS/CDP-level touch input, not a JS-constructed and manually dispatched event. The gap was
+invisible to that method by construction, not through an oversight in the test's execution.
+
+**Not fixed here** — explicitly deferred to a later session per Kewal's instruction. A real
+fix likely means attaching the non-passive `pointermove` listener unconditionally at
+`pointerdown` time (immediately, not inside the hold-timer), and having the handler itself
+decide whether to call `preventDefault()` based on `heldRef.current` — i.e., always pay the
+non-passive-listener cost for the duration of a touch on this element, and gate the actual
+`preventDefault()` call on hold state, rather than gating listener *attachment* on hold
+state. That would need re-verification with real CDP-level touch dispatch (not hand-built
+`PointerEvent`s) to confirm it actually changes Chrome's touchstart-time decision, plus a
+check that the always-on non-passive listener doesn't reintroduce the scroll-latency cost
+on quick taps that the original design was specifically trying to avoid.
+
+## Real hero photography — implemented, Hindi alt text still in draft
+Replaced all five `hero-placeholder-1..5.jpg` (1600x900 generic stock) with real stock
+photography (`hero-image-1..5.jpg`), same five carousel slots, same order. Each resized to
+2400px max long edge and re-encoded, landing 184-298KB each (previously 80-84KB
+placeholders, now real photos with real detail — deliberately not squeezed down to the old
+footprint). `images.unoptimized: true` (from the static-export work) means these ship
+byte-for-byte as provided — no further resizing/recompression happens at build or serve
+time, so any future replacement photos need the same manual pass.
+
+The single shared `hero.carouselImageAlt` string (one generic alt for all five slides) was
+restructured into per-slide alt text — `heroSlides` in `hero.ts` now carries an `altKey`
+per slide (`hero.slides.slide1`..`slide5`), resolved in `Hero.tsx` and passed through
+`Carousel`'s new per-slide `alt` field (`CarouselSlide.alt`, replacing the old single
+`imageAlt` prop).
+
+**English alt text is final** (reviewed and approved by Kewal, written from actually
+viewing each image rather than guessing). **Hindi alt text for all five slides
+(`hi.json`'s `hero.slides.slide1`..`slide5`) is still in draft/unreviewed state** — Kewal
+explicitly deferred reviewing it this session ("leave as draft for now ... skip reviewing
+it further this session"). Do not treat the Hindi hero alt text as approved/final in any
+future session without checking with Kewal first — this is the same "draft Hindi, needs
+review" convention used elsewhere in this project, just not yet closed out.
+
+**Known content mismatch, shipped deliberately:** slide 1's photo (`hero-image-1.jpg`) is a
+generic office/co-working meeting scene with no security, camera, or automation content —
+confirmed by directly viewing the file, not assumed. Flagged to Kewal before implementing;
+he explicitly chose to ship it anyway with generic (non-security-specific) alt text rather
+than swap it or drop the slot. Not a bug — a deliberate content call.
+
+**Known cosmetic issue, not fixed (stock imagery, not final photography):** slides 2 and 3
+(the "24 HOUR VIDEO SURVEILLANCE" fence sign and "SMILE YOU'RE ON CAMERA" sign) each have
+their own bold text baked into the photo itself, which sits directly behind the site's
+white headline text on the desktop full-bleed layout — readable through the existing
+readability gradient, but visually busier than the other three slides. Screenshotted and
+flagged to Kewal; he confirmed no fix needed since these are stock/mock images standing in
+for real installation photography, not the final asset set.
