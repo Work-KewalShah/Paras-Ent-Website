@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-
-const FONT_SCALE_STEPS = ['85', '92.5', '100', '107.5', '115'];
-const DEFAULT_STEP_INDEX = 2;
+import { useFontScale } from '@/components/providers/FontScaleProvider';
 
 const TRACK_CLASSES =
   'flex items-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-1';
@@ -27,24 +24,7 @@ const INNER_DISABLED = cn(INNER_BASE, 'bg-transparent text-text-muted/40');
 
 export function LanguageBar() {
   const { i18n } = useTranslation();
-  const [scaleIndex, setScaleIndex] = useState(DEFAULT_STEP_INDEX);
-
-  useEffect(() => {
-    const step = FONT_SCALE_STEPS[scaleIndex];
-    if (step === '100') {
-      document.documentElement.removeAttribute('data-font-scale');
-    } else {
-      document.documentElement.setAttribute('data-font-scale', step);
-    }
-  }, [scaleIndex]);
-
-  const decrease = () => setScaleIndex((i) => Math.max(0, i - 1));
-  const increase = () => setScaleIndex((i) => Math.min(FONT_SCALE_STEPS.length - 1, i + 1));
-  const reset = () => setScaleIndex(DEFAULT_STEP_INDEX);
-
-  const isMin = scaleIndex === 0;
-  const isMax = scaleIndex === FONT_SCALE_STEPS.length - 1;
-  const isAtDefault = scaleIndex === DEFAULT_STEP_INDEX;
+  const { isMin, isMax, isAtDefault, decrease, increase, reset } = useFontScale();
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[70] h-8 flex items-center justify-center gap-4 bg-[var(--color-bg-elevated,#1C1C1C)] border-b border-border text-xs shadow-[var(--shadow-card,0_4px_24px_rgba(0,0,0,0.4))]">
