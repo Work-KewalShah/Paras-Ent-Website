@@ -28,18 +28,19 @@ const INNER_INACTIVE = cn(INNER_BASE, 'bg-transparent text-text-muted group-hove
 const INNER_DISABLED = cn(INNER_BASE, 'bg-transparent text-text-muted/40');
 
 export function NavbarLanguageControls() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isMin, isMax, isAtDefault, decrease, increase, reset } = useFontScale();
 
   return (
     <div className="hidden lg:flex flex-col gap-1.5">
-      {/* Language track (top) */}
+      {/* Language track (top) — each language's own native name, regardless
+          of current UI language (standard language-switcher convention). */}
       <div className={TRACK_CLASSES}>
         <button type="button" onClick={() => i18n.changeLanguage('en')} className={OUTER_CLASSES}>
           <span className={i18n.language === 'en' ? INNER_ACTIVE : INNER_INACTIVE}>English</span>
         </button>
         <button type="button" onClick={() => i18n.changeLanguage('hi')} className={OUTER_CLASSES}>
-          <span className={i18n.language === 'hi' ? INNER_ACTIVE : INNER_INACTIVE}>Hindi</span>
+          <span className={i18n.language === 'hi' ? INNER_ACTIVE : INNER_INACTIVE}>हिन्दी</span>
         </button>
       </div>
 
@@ -50,11 +51,11 @@ export function NavbarLanguageControls() {
           onClick={decrease}
           disabled={isMin}
           className={cn(FONT_BUTTON_CLASSES, isMin && 'cursor-not-allowed')}
-          aria-label="Decrease font size"
+          aria-label={t('languageBar.decreaseAriaLabel')}
         >
           <span className={cn(isMin ? INNER_DISABLED : INNER_INACTIVE, 'text-[10px]')}>A-</span>
         </button>
-        <button type="button" onClick={reset} className={FONT_BUTTON_CLASSES} aria-label="Reset font size to normal">
+        <button type="button" onClick={reset} className={FONT_BUTTON_CLASSES} aria-label={t('languageBar.resetAriaLabel')}>
           <span className={isAtDefault ? INNER_ACTIVE : INNER_INACTIVE}>A</span>
         </button>
         <button
@@ -62,7 +63,7 @@ export function NavbarLanguageControls() {
           onClick={increase}
           disabled={isMax}
           className={cn(FONT_BUTTON_CLASSES, isMax && 'cursor-not-allowed')}
-          aria-label="Increase font size"
+          aria-label={t('languageBar.increaseAriaLabel')}
         >
           <span className={cn(isMax ? INNER_DISABLED : INNER_INACTIVE, 'text-sm')}>A+</span>
         </button>

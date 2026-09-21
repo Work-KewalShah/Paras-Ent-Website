@@ -65,7 +65,7 @@ export default function Navbar() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
         <a href="#" className="text-text-primary font-display text-2xl tracking-tight flex-shrink">
-          Paras Enterprises
+          {t('common.brandName')}
         </a>
 
         {/* Desktop Nav Links */}

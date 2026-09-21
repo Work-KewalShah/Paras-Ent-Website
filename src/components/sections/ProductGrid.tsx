@@ -18,7 +18,7 @@ export default function ProductGrid() {
     title: t(`products.items.${product.slug}.title`),
     tagline: t(`products.items.${product.slug}.tagline`),
     features: t(`products.items.${product.slug}.features`, { returnObjects: true }) as string[],
-    useCases: product.useCases
+    useCases: product.hasUseCases
       ? (t(`products.items.${product.slug}.useCases`, { returnObjects: true }) as string[])
       : undefined,
   }));

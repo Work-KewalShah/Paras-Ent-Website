@@ -43,7 +43,7 @@ export default function Footer() {
           {/* Logo + Tagline */}
           <div className="flex flex-col space-y-2">
             <p className="font-display text-text-primary uppercase tracking-tight">
-              PARAS ENTERPRISES
+              {t('common.brandName')}
             </p>
             <p className="text-body leading-relaxed">
               {t('common.brandTagline')}
@@ -74,7 +74,7 @@ export default function Footer() {
               {t('footer.contactUsHeading')}
             </h3>
             <p className="text-text-secondary">
-              {contactInfo.address}
+              {t('contact.address')}
             </p>
             <a
               href={contactInfo.googleBusinessLink}

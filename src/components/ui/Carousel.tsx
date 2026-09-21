@@ -16,8 +16,8 @@ export interface CarouselProps {
   intervalMs?: number;
   transitionDurationMs?: number;
   easing?: [number, number, number, number];
-  ariaLabel?: string;
-  imageAlt?: string;
+  ariaLabel: string;
+  imageAlt: string;
 }
 
 export const Carousel: React.FC<CarouselProps> = ({
@@ -25,8 +25,8 @@ export const Carousel: React.FC<CarouselProps> = ({
   intervalMs = 4000,
   transitionDurationMs = 600,
   easing = [0.16, 1, 0.3, 1],
-  ariaLabel = 'Hero image carousel',
-  imageAlt = 'Carousel image',
+  ariaLabel,
+  imageAlt,
 }) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);

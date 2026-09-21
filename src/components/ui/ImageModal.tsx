@@ -75,8 +75,11 @@ export const useFocusTrap = (isOpen: boolean, onClose: () => void, ref: React.Re
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    // Attempt to focus the close button or image
-    const closeBtn = ref.current?.querySelector('button[aria-label="Close image"]');
+    // Attempt to focus the close button or image. Queried by attribute
+    // presence, not literal text — the aria-label itself is translated
+    // (t('imageModal.closeAriaLabel')), so matching the English string here
+    // would silently fail to find the button in Hindi mode.
+    const closeBtn = ref.current?.querySelector('button[aria-label]');
     if (closeBtn) {
       (closeBtn as HTMLElement).focus();
     } else {
