@@ -45,12 +45,12 @@ const AnimatedStat = ({ stat }: AnimatedStatProps) => {
   return (
     <div ref={containerRef} className="flex flex-col items-center space-y-4">
       <div className="flex flex-col items-center w-full pt-4">
-        <span className="text-[var(--color-accent,#00E599)] font-display text-4xl md:text-5xl">
+        <span className="text-[var(--color-accent,#2DD4E8)] font-display text-4xl md:text-5xl">
           <motion.span>{formatted}</motion.span>
         </span>
-        <div className="w-24 h-0.5 bg-[var(--color-accent,#00E599)]/20 rounded mt-3 overflow-hidden">
+        <div className="w-24 h-0.5 bg-[var(--color-accent,#2DD4E8)]/20 rounded mt-3 overflow-hidden">
           <motion.div
-            className="h-full bg-[var(--color-accent,#00E599)] rounded"
+            className="h-full bg-[var(--color-accent,#2DD4E8)] rounded"
             style={{ width: progress }}
           />
         </div>

@@ -149,7 +149,7 @@ export const Carousel: React.FC<CarouselProps> = ({
                 }}
                 onClick={() => handleDotClick(index)}
                 className={cn(
-                  'relative w-3 h-3 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent,#00E599)] transition-colors',
+                  'relative w-3 h-3 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent,#2DD4E8)] transition-colors',
                   isActive ? 'bg-transparent' : 'bg-transparent'
                 )}
                 aria-label={t('carousel.goToSlideAriaLabel', { number: index + 1 })}
@@ -157,10 +157,10 @@ export const Carousel: React.FC<CarouselProps> = ({
                 role="tab"
               >
                 {/* Always-visible outline ring */}
-                <span className="absolute inset-0 rounded-full border-2 border-[var(--color-accent,#00E599)]" />
+                <span className="absolute inset-0 rounded-full border-2 border-[var(--color-accent,#2DD4E8)]" />
                 {/* Active: solid inner fill; inactive: none */}
                 {isActive && (
-                  <span className="absolute inset-[2px] rounded-full bg-[var(--color-accent,#00E599)]" />
+                  <span className="absolute inset-[2px] rounded-full bg-[var(--color-accent,#2DD4E8)]" />
                 )}
               </button>
             );

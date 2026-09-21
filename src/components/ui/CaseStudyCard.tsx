@@ -34,7 +34,7 @@ export const CaseStudyCard = ({ study, className }: CaseStudyCardProps) => {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <h3 className="font-display text-h2 uppercase tracking-tight text-[var(--color-accent,#00E599)] mb-3">
+        <h3 className="font-display text-h2 uppercase tracking-tight text-[var(--color-accent,#2DD4E8)] mb-3">
           {study.clientName}
         </h3>
 

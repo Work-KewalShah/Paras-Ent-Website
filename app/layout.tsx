@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Anton, Inter, Noto_Sans_Devanagari } from "next/font/google";
 import { I18nProvider } from "@/components/providers/I18nProvider";
+import { SiteThemeProvider } from "@/components/providers/SiteThemeProvider";
 import "./globals.css";
 
 const anton = Anton({
@@ -48,7 +49,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${anton.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
       <body className="antialiased">
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          <SiteThemeProvider>{children}</SiteThemeProvider>
+        </I18nProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

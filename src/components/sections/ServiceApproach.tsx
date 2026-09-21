@@ -22,7 +22,7 @@ export default function ServiceApproach() {
             {/* System Installation */}
             <div className="bg-[var(--color-bg-elevated,#1C1C1C)] rounded-lg border border-[var(--color-border,#2A2A2A)] p-6">
               <div className="flex flex-col items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-bg-accent,#00E59910)] border-[var(--color-border-accent,rgba(45,212,232,0.4))] shadow-[0_0_24px_rgba(45,212,232,0.1)] text-[var(--color-accent,#00E599)] font-display text-2xl">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-bg-accent,#2DD4E810)] border-[var(--color-border-accent,rgba(45,212,232,0.4))] shadow-[var(--shadow-glow-accent-soft,0_0_24px_rgba(45,212,232,0.1))] text-[var(--color-accent,#2DD4E8)] font-display text-2xl">
                   1
                 </div>
                 <div>
@@ -39,7 +39,7 @@ export default function ServiceApproach() {
             {/* Maintenance & Support */}
             <div className="bg-[var(--color-bg-elevated,#1C1C1C)] rounded-lg border border-[var(--color-border,#2A2A2A)] p-6">
               <div className="flex flex-col items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-bg-accent,#00E59910)] border-[var(--color-border-accent,rgba(45,212,232,0.4))] shadow-[0_0_24px_rgba(45,212,232,0.1)] text-[var(--color-accent,#00E599)] font-display text-2xl">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-bg-accent,#2DD4E810)] border-[var(--color-border-accent,rgba(45,212,232,0.4))] shadow-[var(--shadow-glow-accent-soft,0_0_24px_rgba(45,212,232,0.1))] text-[var(--color-accent,#2DD4E8)] font-display text-2xl">
                   2
                 </div>
                 <div>
@@ -56,7 +56,7 @@ export default function ServiceApproach() {
             {/* Upgrades & Expansions */}
             <div className="bg-[var(--color-bg-elevated,#1C1C1C)] rounded-lg border border-[var(--color-border,#2A2A2A)] p-6">
               <div className="flex flex-col items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-bg-accent,#00E59910)] border-[var(--color-border-accent,rgba(45,212,232,0.4))] shadow-[0_0_24px_rgba(45,212,232,0.1)] text-[var(--color-accent,#00E599)] font-display text-2xl">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-bg-accent,#2DD4E810)] border-[var(--color-border-accent,rgba(45,212,232,0.4))] shadow-[var(--shadow-glow-accent-soft,0_0_24px_rgba(45,212,232,0.1))] text-[var(--color-accent,#2DD4E8)] font-display text-2xl">
                   3
                 </div>
                 <div>
@@ -73,7 +73,7 @@ export default function ServiceApproach() {
             {/* Expert Consultation */}
             <div className="bg-[var(--color-bg-elevated,#1C1C1C)] rounded-lg border border-[var(--color-border,#2A2A2A)] p-6">
               <div className="flex flex-col items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--color-bg-accent,#00E59920)] text-[var(--color-accent,#00E599)] font-display text-xl">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--color-bg-accent-strong,#2DD4E820)] text-[var(--color-accent,#2DD4E8)] font-display text-xl">
                   4
                 </div>
                 <div>
