@@ -45,13 +45,13 @@ export const metadata: Metadata = {
   title: siteTitle,
   description:
     "Trusted security and automation solutions in Bilaspur since 1999. CCTV, biometrics, home automation, networking, and more. 25+ years, 8,000+ installations. Get a free site survey today.",
-  metadataBase: new URL("https://parasent.web.app"),
+  metadataBase: new URL("https://parasenterprises.web.app"),
   openGraph: {
     title: siteTitle,
     description: siteDescription,
     type: "website",
     locale: "en_IN",
-    url: "https://parasent.web.app",
+    url: "https://parasenterprises.web.app",
     images: [ogImage],
   },
   twitter: {
