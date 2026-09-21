@@ -559,3 +559,47 @@ errors. Daytime's 6 computed tokens (`bgPrimary`, `bgSecondary`, `bgElevated`, `
 `bgCard`, plus the rest) sampled directly and confirmed unchanged. Hindi + font-scale
 reconfirmed composing correctly under two of the changed themes (Sunrise, Sunset)
 simultaneously, zero errors. `tsc --noEmit` and `npm run build` clean throughout.
+
+## Session 15 (Desktop LanguageBar → Navbar Merge) — COMPLETE
+Removed the top LanguageBar entirely on desktop (`lg`, 1024px+) — mobile/tablet keep it
+completely unchanged. Both controls (language switch, font-size) now live inside the
+Navbar itself on desktop, stacked vertically at the row's right end after the CTA button.
+Full architecture, the crowding-fix investigation, and the race-condition fix are in
+`docs/04-process/session-15.md`; summarized here:
+
+**Font-scale race condition, found and fixed before shipping:** this codebase's
+`hidden`/`lg:hidden` responsive-split convention keeps both branches mounted in the DOM —
+only one is CSS-hidden. `LanguageBar.tsx`'s font-scale index was local `useState`, so a
+second independently-mounted control in the Navbar would have raced the first over the
+same `data-font-scale` attribute and drifted out of sync across the breakpoint (the
+language toggle doesn't have this problem — `i18n.language` is already a real shared
+singleton). Fixed by extracting the index into `FontScaleProvider.tsx`, mirroring
+`SiteThemeProvider`'s already-established Context pattern exactly.
+
+**New desktop header height — measured, not estimated:** two stacked ~28px tracks +
+`gap-1.5` + 24px vertical padding = **84px** compact/scrolled, confirmed by direct
+measurement of the real built component (matched the calculation exactly). Replaces the
+old 104px (LanguageBar 32px + Navbar-compact 72px) in every dependent location: Hero.tsx
+gained a third responsive tier (mobile/tablet unchanged, new `lg:pt-[84px]`),
+`globals.css`'s `scroll-padding-top` got a `@media (min-width: 1024px)` override,
+ProductShowcase's already-desktop-only sticky offset swapped straight to 84px, Navbar's
+own `top-8 lg:top-0` / `min-h-[72px] lg:min-h-[84px]`.
+
+**1024–1088px crowding fix — caught a real bug via computed-style verification, not
+visual inspection:** the first attempt narrowed the nav-links gap with two Tailwind
+variants (`lg:gap-3 min-[1089px]:gap-8`), which looked plausible but never actually
+restored the full gap at any width — Tailwind does not numerically sort an arbitrary
+`min-[]:` variant after a named `lg:` one, so `lg:gap-3` always won regardless of
+viewport. Caught by checking the real computed `gap` CSS property across the full width
+range rather than trusting the class names, then replaced with a single explicit
+`@media (min-width: 1024px) and (max-width: 1088px)` rule, which cascades correctly by
+construction and was reverified working exactly as intended.
+
+**Verified:** real measured header heights (84px compact / 107px expanded) match
+calculated values; no wrapping/overflow at 1024/1088/1089/1280px (checked via
+`scrollWidth` vs `innerWidth`, not visual-only); mobile confirmed completely unaffected via
+computed `display` values (LanguageBar still `flex` there, new stack `none`), the reverse
+confirmed on desktop; Hindi + font-scale confirmed working through the *new* desktop
+controls specifically; anchor-link scroll confirmed clearing the shorter header via a real
+`.click()` (a scripted `location.hash` assignment was tried first and gave a misleading
+result); `tsc`/build clean throughout both increments.
