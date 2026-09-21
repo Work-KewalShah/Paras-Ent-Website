@@ -14,6 +14,13 @@ const TRACK_CLASSES =
 const OUTER_CLASSES =
   "group relative flex items-center justify-center bg-transparent after:content-[''] after:absolute after:inset-[-6px]";
 
+// Font-scale buttons only ("A-"/"A"/"A+") get a fixed equal width so the
+// group's visual center (the "A" pill) lands at the row's true midpoint —
+// their natural content widths differ enough (A+ is ~46% wider than A) that
+// centering the group's bounding box alone still looks lopsided. Not applied
+// to the language track: "English"/"Hindi" need their own natural width.
+const FONT_BUTTON_CLASSES = cn(OUTER_CLASSES, 'w-8');
+
 const INNER_BASE = 'flex items-center justify-center rounded-sm px-1.5 py-0.5 text-xs transition-colors';
 
 const INNER_ACTIVE = cn(INNER_BASE, 'bg-accent text-bg-primary font-semibold');
@@ -42,19 +49,19 @@ export function NavbarLanguageControls() {
           type="button"
           onClick={decrease}
           disabled={isMin}
-          className={cn(OUTER_CLASSES, isMin && 'cursor-not-allowed')}
+          className={cn(FONT_BUTTON_CLASSES, isMin && 'cursor-not-allowed')}
           aria-label="Decrease font size"
         >
           <span className={cn(isMin ? INNER_DISABLED : INNER_INACTIVE, 'text-[10px]')}>A-</span>
         </button>
-        <button type="button" onClick={reset} className={OUTER_CLASSES} aria-label="Reset font size to normal">
+        <button type="button" onClick={reset} className={FONT_BUTTON_CLASSES} aria-label="Reset font size to normal">
           <span className={isAtDefault ? INNER_ACTIVE : INNER_INACTIVE}>A</span>
         </button>
         <button
           type="button"
           onClick={increase}
           disabled={isMax}
-          className={cn(OUTER_CLASSES, isMax && 'cursor-not-allowed')}
+          className={cn(FONT_BUTTON_CLASSES, isMax && 'cursor-not-allowed')}
           aria-label="Increase font size"
         >
           <span className={cn(isMax ? INNER_DISABLED : INNER_INACTIVE, 'text-sm')}>A+</span>
