@@ -931,3 +931,25 @@ that evidence was in hand were the changes proposed, then reverted pending appro
 re-applied and re-verified identically once approved. Final re-verification: all 6 themes
 render with zero console errors, reduced motion unaffected (same byte-identity checks as
 above), `tsc`/build clean.
+
+## Star twinkle: amplitude overcorrection, not a regression
+Reported as "not twinkling." Re-measured with the same real pixel-brightness sampling
+method used to find the original too-strong-pulse problem: the oscillation mechanism was
+confirmed genuinely functioning (brightness changed smoothly and continuously over
+repeated samples, ruling out a broken calculation, a stuck phase, or timestamp not
+reaching the draw call) — but the amplitude fix from the previous round had swung too far
+the other way. Measured ratios landed at 1.20x (Pre-dawn) and 1.39x (Night), against a
+too-strong original of 3.5x/2.83x — real but plausibly imperceptible at the stars' small
+size (0.8–2.2px radius) in casual viewing.
+
+**Fix:** widened both ranges to a real middle ground — Pre-dawn `0.16–0.24` → `0.12–0.32`,
+Night `0.5–0.75` → `0.4–0.82` — landing around 1.7-1.8x, roughly the geometric midpoint
+between the two extremes. Tested in context before proposing: temporarily applied,
+rebuilt, and both pixel-sampled *and* screenshotted a real 2-second-interval sequence
+showing individual stars visibly brightening/dimming, not just wider numbers on paper.
+Reverted pending approval, then re-applied and re-verified identically once approved.
+
+**Verified:** re-measured post-fix at 1.43x (Pre-dawn) and 1.66x (Night) — consistent with
+the tested values; all 6 themes reconfirmed rendering with zero console errors; reduced
+motion reconfirmed unaffected (same byte-identity checks as above — Daytime birds still
+fully skipped, Night stars still static); `tsc`/build clean.
