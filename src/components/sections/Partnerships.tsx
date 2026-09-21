@@ -75,7 +75,7 @@ export const Partnerships = () => {
             100% { transform: translateX(-50%); }
           }
           .animate-marquee {
-            animation: marquee 60s linear infinite;
+            animation: marquee 48s linear infinite;
           }
           @media (prefers-reduced-motion: reduce) {
             .animate-marquee { animation: none; }
