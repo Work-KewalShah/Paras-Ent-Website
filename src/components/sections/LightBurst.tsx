@@ -45,6 +45,78 @@ function generateLines(count: number): LineState[] {
   return lines;
 }
 
+const THEME_TRANSITION_MS = 450;
+
+interface ColorRGB {
+  r: number;
+  g: number;
+  b: number;
+}
+
+interface ThemeColorsRGB {
+  bgTop: ColorRGB;
+  bgBottom: ColorRGB;
+  line: ColorRGB;
+  dot: ColorRGB;
+}
+
+interface ResolvedColors {
+  bgTop: string;
+  bgBottom: string;
+  line: string;
+  dot: string;
+}
+
+interface ColorTransition {
+  from: ThemeColorsRGB;
+  to: ThemeColorsRGB;
+  startTime: number;
+}
+
+function hexToRgb(hex: string): ColorRGB {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function themeToRgb(theme: LightBurstTheme): ThemeColorsRGB {
+  return {
+    bgTop: hexToRgb(theme.bgTop),
+    bgBottom: hexToRgb(theme.bgBottom),
+    line: hexToRgb(theme.line),
+    dot: hexToRgb(theme.dot),
+  };
+}
+
+function lerpColor(a: ColorRGB, b: ColorRGB, t: number): ColorRGB {
+  return {
+    r: a.r + (b.r - a.r) * t,
+    g: a.g + (b.g - a.g) * t,
+    b: a.b + (b.b - a.b) * t,
+  };
+}
+
+function lerpThemeColors(from: ThemeColorsRGB, to: ThemeColorsRGB, t: number): ThemeColorsRGB {
+  return {
+    bgTop: lerpColor(from.bgTop, to.bgTop, t),
+    bgBottom: lerpColor(from.bgBottom, to.bgBottom, t),
+    line: lerpColor(from.line, to.line, t),
+    dot: lerpColor(from.dot, to.dot, t),
+  };
+}
+
+function rgbToCss(c: ColorRGB): string {
+  return `rgb(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)})`;
+}
+
+function toResolvedColors(c: ThemeColorsRGB): ResolvedColors {
+  return {
+    bgTop: rgbToCss(c.bgTop),
+    bgBottom: rgbToCss(c.bgBottom),
+    line: rgbToCss(c.line),
+    dot: rgbToCss(c.dot),
+  };
+}
+
 function ThemeIcon({ icon, className }: { icon: LightBurstIcon; className?: string }) {
   const common = {
     xmlns: 'http://www.w3.org/2000/svg',
@@ -160,14 +232,14 @@ function drawFrame(
   cssWidth: number,
   cssHeight: number,
   lines: LineState[],
-  theme: LightBurstTheme,
+  colors: ResolvedColors,
   timestamp?: number
 ) {
   ctx.clearRect(0, 0, cssWidth, cssHeight);
 
   const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
-  gradient.addColorStop(0, theme.bgTop);
-  gradient.addColorStop(1, theme.bgBottom);
+  gradient.addColorStop(0, colors.bgTop);
+  gradient.addColorStop(1, colors.bgBottom);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, cssWidth, cssHeight);
 
@@ -192,7 +264,7 @@ function drawFrame(
     ctx.beginPath();
     ctx.moveTo(baseX, baseY);
     ctx.quadraticCurveTo(controlX, controlY, tipX, tipY);
-    ctx.strokeStyle = theme.line;
+    ctx.strokeStyle = colors.line;
     ctx.globalAlpha = opacity;
     ctx.lineWidth = width;
     ctx.stroke();
@@ -201,7 +273,7 @@ function drawFrame(
     const dotOpacity = Math.min(0.9, 0.45 + displacement * 0.06);
     ctx.beginPath();
     ctx.arc(tipX, tipY, dotRadius, 0, Math.PI * 2);
-    ctx.fillStyle = theme.dot;
+    ctx.fillStyle = colors.dot;
     ctx.globalAlpha = dotOpacity;
     ctx.fill();
   }
@@ -217,10 +289,32 @@ export const LightBurst = () => {
   const linesRef = useRef<LineState[] | null>(null);
   const themeIndexRef = useRef(activeThemeIndex);
   const pointerRef = useRef<PointerState>({ x: 0, y: 0, active: false });
+  const currentColorsRGBRef = useRef<ThemeColorsRGB>(themeToRgb(lightBurstThemes[DEFAULT_THEME_INDEX]));
+  const transitionRef = useRef<ColorTransition | null>(null);
+  const redrawStaticRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     themeIndexRef.current = activeThemeIndex;
-  }, [activeThemeIndex]);
+    const targetColors = themeToRgb(lightBurstThemes[activeThemeIndex]);
+
+    if (shouldReduceMotion) {
+      // No cross-fade under reduced motion — snap straight to the new theme and
+      // redraw the single static frame immediately.
+      currentColorsRGBRef.current = targetColors;
+      transitionRef.current = null;
+      redrawStaticRef.current?.();
+      return;
+    }
+
+    // Start the new transition from wherever the live colors currently are —
+    // not from the previous theme's original values — so re-clicking mid-fade
+    // continues smoothly instead of snapping back or jumping.
+    transitionRef.current = {
+      from: currentColorsRGBRef.current,
+      to: targetColors,
+      startTime: performance.now(),
+    };
+  }, [activeThemeIndex, shouldReduceMotion]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -246,14 +340,30 @@ export const LightBurst = () => {
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
 
     if (shouldReduceMotion) {
       // Static fallback: one draw at base positions, no sway, no scatter, no RAF,
       // no pointer tracking, no IntersectionObserver — nothing left running.
-      drawFrame(ctx, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current]);
-      return () => window.removeEventListener('resize', resizeCanvas);
+      const redrawStatic = () => {
+        drawFrame(ctx, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current]);
+      };
+      redrawStaticRef.current = redrawStatic;
+      redrawStatic();
+
+      function handleResizeStatic() {
+        resizeCanvas();
+        redrawStatic();
+      }
+      window.addEventListener('resize', handleResizeStatic);
+
+      return () => {
+        window.removeEventListener('resize', handleResizeStatic);
+        redrawStaticRef.current = null;
+      };
     }
+
+    redrawStaticRef.current = null;
+    window.addEventListener('resize', resizeCanvas);
 
     function onPointerMove(e: PointerEvent) {
       const rect = canvas!.getBoundingClientRect();
@@ -274,8 +384,18 @@ export const LightBurst = () => {
         rafId = null;
         return;
       }
+
+      const transition = transitionRef.current;
+      if (transition) {
+        const t = Math.min(1, (timestamp - transition.startTime) / THEME_TRANSITION_MS);
+        currentColorsRGBRef.current = lerpThemeColors(transition.from, transition.to, t);
+        if (t >= 1) {
+          transitionRef.current = null;
+        }
+      }
+
       updateLines(lines, pointerRef.current, cssWidth, cssHeight, timestamp);
-      drawFrame(ctx!, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current], timestamp);
+      drawFrame(ctx!, cssWidth, cssHeight, lines, toResolvedColors(currentColorsRGBRef.current), timestamp);
       rafId = requestAnimationFrame(loop);
     }
 
