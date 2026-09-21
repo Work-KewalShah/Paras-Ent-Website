@@ -27,7 +27,7 @@ export function LanguageBar() {
   const { isMin, isMax, isAtDefault, decrease, increase, reset } = useFontScale();
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[70] h-8 flex items-center justify-center gap-4 bg-[var(--color-bg-elevated,#1C1C1C)] border-b border-border text-xs shadow-[var(--shadow-card,0_4px_24px_rgba(0,0,0,0.4))]">
+    <div className="lg:hidden fixed top-0 left-0 right-0 z-[70] h-8 flex items-center justify-center gap-4 bg-[var(--color-bg-elevated,#1C1C1C)] border-b border-border text-xs shadow-[var(--shadow-card,0_4px_24px_rgba(0,0,0,0.4))]">
       {/* Font-size track */}
       <div className={TRACK_CLASSES}>
         <button

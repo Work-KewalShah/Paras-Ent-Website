@@ -266,15 +266,36 @@
 /* === Smooth scroll + header offset === */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 104px; /* LanguageBar (32px) + fixed navbar (72px) */
+  scroll-padding-top: 104px; /* mobile/tablet: LanguageBar (32px) + fixed navbar (72px) */
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
 }
 
+@media (min-width: 1024px) {
+  html {
+    /* desktop: LanguageBar removed (Session 15) — navbar alone, compact
+       height (84px: 58px language/font-size stack + 24px vertical padding) */
+    scroll-padding-top: 84px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Session 15: narrow the desktop nav-links gap only in the 1024-1088px band,
+   where the new language/font-size stack at the row's right end would
+   otherwise crowd it. A single bounded media query here (rather than two
+   separate Tailwind lg:/min-[]: utility variants) guarantees correct
+   cascade order — confirmed by direct testing that Tailwind does not
+   numerically sort an arbitrary min-[]: variant after a named lg: variant,
+   so a min-[1089px]: "restore" utility never actually won. */
+@media (min-width: 1024px) and (max-width: 1088px) {
+  .navbar-links-gap-fix {
+    gap: 12px;
   }
 }
 

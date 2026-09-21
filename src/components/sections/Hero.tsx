@@ -48,7 +48,7 @@ export default function Hero() {
       };
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center pt-36 md:pt-[104px] overflow-hidden">
+    <section className="relative min-h-[100dvh] flex items-center pt-36 md:pt-[104px] lg:pt-[84px] overflow-hidden">
       {/* md and up: full-bleed carousel background + gradients */}
       <div className="hidden md:block">
         <div className="absolute inset-0">
