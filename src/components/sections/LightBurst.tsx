@@ -184,10 +184,25 @@ const VELOCITY_DAMPING = 0.88;
 const OFFSET_DECAY = 0.94;
 const CURVE_BOW_FACTOR = 0.6;
 
+// Touch-hold-then-drag scroll-block exception (deliberate, scoped override of the
+// Session 13 "touch must never block scroll" rule — see decisions.md). A quick
+// tap-and-swipe scrolls normally, unchanged; only a touch held for HOLD_DELAY_MS
+// before dragging blocks scroll, and only for the duration of that hold.
+const HOLD_DELAY_MS = 250;
+const PULSE_DURATION_MS = 350;
+const PULSE_RADIUS = 160;
+const PULSE_MAX_BOOST = 0.5;
+
 interface PointerState {
   x: number;
   y: number;
   active: boolean;
+}
+
+interface Pulse {
+  x: number;
+  y: number;
+  intensity: number;
 }
 
 function updateLines(
@@ -234,7 +249,8 @@ function drawFrame(
   cssHeight: number,
   lines: LineState[],
   colors: ResolvedColors,
-  timestamp?: number
+  timestamp?: number,
+  pulse?: Pulse | null
 ) {
   ctx.clearRect(0, 0, cssWidth, cssHeight);
 
@@ -259,8 +275,18 @@ function drawFrame(
     const controlX = (baseX + naturalTipX) / 2 + line.offsetX * CURVE_BOW_FACTOR;
     const controlY = (baseY + naturalTipY) / 2 + line.offsetY * CURVE_BOW_FACTOR;
 
-    const opacity = Math.min(0.85, 0.3 + displacement * 0.045);
-    const width = 1 + Math.min(1.4, displacement * 0.05);
+    let pulseBoost = 0;
+    if (pulse) {
+      const pdx = tipX - pulse.x;
+      const pdy = tipY - pulse.y;
+      const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+      if (pdist < PULSE_RADIUS) {
+        pulseBoost = (1 - pdist / PULSE_RADIUS) * pulse.intensity;
+      }
+    }
+
+    const opacity = Math.min(1, Math.min(0.85, 0.3 + displacement * 0.045) + pulseBoost * PULSE_MAX_BOOST);
+    const width = 1 + Math.min(1.4, displacement * 0.05) + pulseBoost * 1.5;
 
     ctx.beginPath();
     ctx.moveTo(baseX, baseY);
@@ -271,7 +297,7 @@ function drawFrame(
     ctx.stroke();
 
     const dotRadius = 1.5 + Math.min(2, displacement * 0.06);
-    const dotOpacity = Math.min(0.9, 0.45 + displacement * 0.06);
+    const dotOpacity = Math.min(1, Math.min(0.9, 0.45 + displacement * 0.06) + pulseBoost * PULSE_MAX_BOOST);
     ctx.beginPath();
     ctx.arc(tipX, tipY, dotRadius, 0, Math.PI * 2);
     ctx.fillStyle = colors.dot;
@@ -293,6 +319,10 @@ export const LightBurst = () => {
   const currentColorsRGBRef = useRef<ThemeColorsRGB>(themeToRgb(lightBurstThemes[DEFAULT_THEME_INDEX]));
   const transitionRef = useRef<ColorTransition | null>(null);
   const redrawStaticRef = useRef<(() => void) | null>(null);
+  const holdTimerRef = useRef<number | null>(null);
+  const heldRef = useRef(false);
+  const activePointerIdRef = useRef<number | null>(null);
+  const pulseRef = useRef<{ x: number; y: number; startTime: number } | null>(null);
 
   useEffect(() => {
     themeIndexRef.current = activeThemeIndex;
@@ -342,9 +372,88 @@ export const LightBurst = () => {
     }
     resizeCanvas();
 
+    // Touch-hold-then-drag scroll-block gesture (Session 16 exception to the
+    // Session 13 "touch must never block scroll" rule — see decisions.md).
+    // Shared by both the reduced-motion and animated branches below, since
+    // scroll-blocking must work in both, even though the pulse cue is
+    // skipped under reduced motion. Mouse pointers never enter this code at
+    // all — desktop behavior is completely unaffected.
+    function setupHoldGesture() {
+      let preventScrollAttached = false;
+
+      function preventScrollOnMove(e: PointerEvent) {
+        e.preventDefault();
+      }
+
+      function attachPreventScroll() {
+        if (preventScrollAttached) return;
+        canvas!.addEventListener('pointermove', preventScrollOnMove, { passive: false });
+        preventScrollAttached = true;
+      }
+
+      function detachPreventScroll() {
+        if (!preventScrollAttached) return;
+        canvas!.removeEventListener('pointermove', preventScrollOnMove);
+        preventScrollAttached = false;
+      }
+
+      function endHold() {
+        if (holdTimerRef.current !== null) {
+          window.clearTimeout(holdTimerRef.current);
+          holdTimerRef.current = null;
+        }
+        detachPreventScroll();
+        heldRef.current = false;
+        activePointerIdRef.current = null;
+      }
+
+      function onHoldPointerDown(e: PointerEvent) {
+        if (e.pointerType !== 'touch') return;
+        if (activePointerIdRef.current !== null) return; // already tracking a touch
+
+        const rect = canvas!.getBoundingClientRect();
+        pointerRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top, active: true };
+        activePointerIdRef.current = e.pointerId;
+
+        holdTimerRef.current = window.setTimeout(() => {
+          holdTimerRef.current = null;
+          heldRef.current = true;
+          attachPreventScroll();
+          if (!shouldReduceMotion) {
+            pulseRef.current = {
+              x: pointerRef.current.x,
+              y: pointerRef.current.y,
+              startTime: performance.now(),
+            };
+          }
+        }, HOLD_DELAY_MS);
+      }
+
+      function onHoldPointerEnd(e: PointerEvent) {
+        if (e.pointerType !== 'touch') return;
+        if (e.pointerId !== activePointerIdRef.current) return;
+        endHold();
+      }
+
+      canvas!.addEventListener('pointerdown', onHoldPointerDown);
+      canvas!.addEventListener('pointerup', onHoldPointerEnd);
+      canvas!.addEventListener('pointercancel', onHoldPointerEnd);
+      canvas!.addEventListener('pointerleave', onHoldPointerEnd);
+
+      return () => {
+        canvas!.removeEventListener('pointerdown', onHoldPointerDown);
+        canvas!.removeEventListener('pointerup', onHoldPointerEnd);
+        canvas!.removeEventListener('pointercancel', onHoldPointerEnd);
+        canvas!.removeEventListener('pointerleave', onHoldPointerEnd);
+        endHold();
+      };
+    }
+
     if (shouldReduceMotion) {
       // Static fallback: one draw at base positions, no sway, no scatter, no RAF,
-      // no pointer tracking, no IntersectionObserver — nothing left running.
+      // no pointer tracking, no IntersectionObserver — nothing left running,
+      // except the hold-gesture listeners (scroll-block still applies; pulse
+      // cue is skipped since there's no RAF loop to animate it).
       const redrawStatic = () => {
         drawFrame(ctx, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current]);
       };
@@ -356,15 +465,18 @@ export const LightBurst = () => {
         redrawStatic();
       }
       window.addEventListener('resize', handleResizeStatic);
+      const teardownHoldGesture = setupHoldGesture();
 
       return () => {
         window.removeEventListener('resize', handleResizeStatic);
+        teardownHoldGesture();
         redrawStaticRef.current = null;
       };
     }
 
     redrawStaticRef.current = null;
     window.addEventListener('resize', resizeCanvas);
+    const teardownHoldGesture = setupHoldGesture();
 
     function onPointerMove(e: PointerEvent) {
       const rect = canvas!.getBoundingClientRect();
@@ -395,8 +507,18 @@ export const LightBurst = () => {
         }
       }
 
+      let pulse: Pulse | null = null;
+      if (pulseRef.current) {
+        const elapsed = timestamp - pulseRef.current.startTime;
+        if (elapsed < PULSE_DURATION_MS) {
+          pulse = { x: pulseRef.current.x, y: pulseRef.current.y, intensity: 1 - elapsed / PULSE_DURATION_MS };
+        } else {
+          pulseRef.current = null;
+        }
+      }
+
       updateLines(lines, pointerRef.current, cssWidth, cssHeight, timestamp);
-      drawFrame(ctx!, cssWidth, cssHeight, lines, toResolvedColors(currentColorsRGBRef.current), timestamp);
+      drawFrame(ctx!, cssWidth, cssHeight, lines, toResolvedColors(currentColorsRGBRef.current), timestamp, pulse);
       rafId = requestAnimationFrame(loop);
     }
 
@@ -416,6 +538,7 @@ export const LightBurst = () => {
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointercancel', onPointerLeave);
+      teardownHoldGesture();
       observer.disconnect();
       if (rafId !== null) cancelAnimationFrame(rafId);
     };

@@ -659,3 +659,83 @@ next request with no restart. Reverted the same way, confirmed it tracked back c
 and confirmed `git diff` showed zero residual change afterward. All 5 other nav keys
 re-checked and still resolve correctly (no regression from the new branch). Zero console
 errors in a real browser load against the dev server.
+
+## Deliberate touch-interaction exception: hold-then-drag scroll-block on LightBurst
+**This is a scoped override of, not a reversal of, the Session 13 "touch must never block
+page scroll" rule above.** That rule's reasoning — pointer events unified with mouse,
+verified via a dispatched cancelable event's `defaultPrevented === false`, and no
+`touch-action` override — still holds for the *default* interaction: a quick
+tap-and-swipe over LightBurst scrolls the page exactly as it always has, with
+`preventDefault()` never called. The new behavior only exists in a narrow, deliberately
+gated state: if the same touch is held in place for 250ms *before* it starts moving,
+scroll blocks for the remainder of that touch so the drag drives the scatter effect
+instead — a real UX tradeoff for a decorative element, made consciously rather than by
+accident.
+
+**Design choice worth calling out:** the naive fix (marking the existing always-on
+`pointermove` listener `{ passive: false }`) would have reintroduced a small scroll-
+latency cost on *every* touch interaction, including quick taps that never call
+`preventDefault()` — because a non-passive listener forces the browser to wait for the
+handler before committing to scroll, regardless of whether it ends up calling
+`preventDefault()`. Instead, a second `pointermove` listener is dynamically attached
+`{ passive: false }` only once the 250ms hold-timer fires, and removed again on
+pointerup/cancel/leave. Passive performance is fully preserved for every quick tap and
+all mouse interaction at all times; the non-passive cost exists only during the exact
+window scroll is already intentionally blocked in.
+
+**Architecture:** a `setupHoldGesture()` helper (defined once per effect run, shared by
+both the animated and reduced-motion branches so scroll-blocking works in both) adds
+`pointerdown`/`pointerup`/`pointercancel`/`pointerleave` listeners gated
+`pointerType !== 'touch'` at the very top — mouse never enters this code path, confirmed
+by a dispatched mouse `PointerEvent` held 300ms then moved, `defaultPrevented` stayed
+`false`. `pointerdown` starts a 250ms `setTimeout`; if it fires while still pressed, sets
+`heldRef.current = true`, attaches the dynamic non-passive listener, and (only outside
+reduced motion) seeds `pulseRef` with the current touch position for the visual cue.
+Scatter physics (`updateLines`) is completely untouched — it already reacts to any
+`pointermove` regardless of hold state, which is correct for both the unchanged quick-tap
+case and the new held-drag case.
+
+**Visual cue:** `drawFrame` gained one new optional parameter (a `{x, y, intensity}`
+pulse), computed each frame in the RAF loop from `pulseRef` with a 350ms linear fade, and
+applied as a proportional opacity/width boost to lines within a 160px radius of the touch
+point — purely a rendering-layer effect, no change to `updateLines`'s force/velocity
+math. Reduced motion never sets `pulseRef` in the first place, so nothing new ever
+renders there, rather than needing a separate suppression flag.
+
+**Verified**, all via dispatched cancelable `PointerEvent`s with `pointerType: 'touch'`
+against the real running app (not just source-reading):
+- Quick tap-and-swipe (pointerdown → 3 moves → pointerup, ~60ms total): `defaultPrevented`
+  false on every event — scroll behaves exactly as before.
+- Held-then-drag: sampled `defaultPrevented` at t=50/100/150/200/260/300/350ms after
+  pointerdown — false through 200ms, true from 260ms on, matching the 250ms threshold.
+- Scatter still visually responds during a held-drag (`canvas.toDataURL()` differs from
+  the pre-touch baseline after 8 simulated drag moves past the hold threshold) — the drag
+  genuinely drives the effect, not just blocks scroll with no visible feedback.
+- Pulse cue: real `getImageData()` luminance sampling (not just a screenshot glance)
+  around the touch point shows a consistent, positive brightness delta between ~280ms
+  (pulse near peak) and ~780ms (well past the 350ms decay window) — small in magnitude by
+  design (subtle was the explicit spec), but real and reproducible.
+- Reduced motion: scroll-block still engages at the same 250ms threshold (`defaultPrevented`
+  false→true at the same timing), but `canvas.toDataURL()` is **byte-identical** across
+  the entire hold+pulse window — genuinely zero pulse, zero animation, using the same
+  byte-identity method Session 13 established. The React #418 console error seen here is
+  the same already-documented sitewide `useReducedMotion()` mismatch, not new.
+- `IntersectionObserver` pause/resume and the `ssr: false` dynamic import boundary
+  confirmed unaffected: raw SSR HTML still has no `<canvas>` element, and the canvas is
+  still byte-identical while scrolled off-screen and changes again once back in view.
+- `tsc --noEmit` and `npm run build` clean; zero console errors in every scenario above
+  except the known pre-existing reduced-motion one.
+
+**Known, explicitly flagged gap — real device coverage, not just the general Session 09
+Firefox/Safari note:** all of the above was verified via Chromium (Playwright) with touch
+emulation (`hasTouch: true`) and dispatched synthetic `PointerEvent`s — **not on any real
+iOS/Safari device or real Firefox.** This matters more for this feature specifically than
+for most of what's shipped so far: Safari's touch/scroll gesture recognizer has
+historically had its own heuristics around when it commits to a scroll versus waiting for
+`preventDefault()`, and iOS's passive-listener/`touch-action` interaction isn't guaranteed
+identical to Chromium's. The logic here is deliberately conservative (gated by
+`pointerType === 'touch'`, only ever non-passive during an already-intentional block
+window) specifically to minimize surface area for such a mismatch, but that's a design
+mitigation, not a substitute for real-device confirmation. Real iOS/Safari (and ideally
+real Android, beyond Chromium's touch emulation) testing is a genuine open item before
+treating this as fully verified across the field, not just logged-and-assumed-fine.
