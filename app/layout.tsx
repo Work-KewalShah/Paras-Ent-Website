@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Anton, Inter, Noto_Sans_Devanagari } from "next/font/google";
 import { I18nProvider } from "@/components/providers/I18nProvider";
+import { SiteThemeProvider } from "@/components/providers/SiteThemeProvider";
+import { FontScaleProvider } from "@/components/providers/FontScaleProvider";
 import "./globals.css";
 
 const anton = Anton({
@@ -23,19 +25,40 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   display: "optional",
 });
 
+// TODO: og-image-placeholder.png is a composed placeholder banner (brand
+// wordmark + tagline + colors, no real photography) — swap for a real
+// hero-photography-based image once that's available, and update the
+// alt text / filename together with it so this doesn't quietly become
+// permanent.
+const ogImage = {
+  url: "/og-image-placeholder.png",
+  width: 1200,
+  height: 630,
+  alt: "Paras Enterprises — Security & Automation Solutions in Bilaspur",
+};
+
+const siteTitle = "Paras Enterprises | Security & Automation Solutions in Bilaspur";
+const siteDescription =
+  "25+ years of trusted security and automation solutions in Bilaspur, Chhattisgarh. Free site survey available.";
+
 export const metadata: Metadata = {
-  title: "Paras Enterprises | Security & Automation Solutions in Bilaspur",
+  title: siteTitle,
   description:
     "Trusted security and automation solutions in Bilaspur since 1999. CCTV, biometrics, home automation, networking, and more. 25+ years, 8,000+ installations. Get a free site survey today.",
   metadataBase: new URL("https://parasent.web.app"),
   openGraph: {
-    title: "Paras Enterprises | Security & Automation Solutions in Bilaspur",
-    description:
-      "25+ years of trusted security and automation solutions in Bilaspur, Chhattisgarh. Free site survey available.",
+    title: siteTitle,
+    description: siteDescription,
     type: "website",
     locale: "en_IN",
     url: "https://parasent.web.app",
-    images: ["/og-placeholder.png"],
+    images: [ogImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: [ogImage.url],
   },
   alternates: {
     canonical: "/",
@@ -48,7 +71,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${anton.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
       <body className="antialiased">
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          <SiteThemeProvider>
+            <FontScaleProvider>{children}</FontScaleProvider>
+          </SiteThemeProvider>
+        </I18nProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -56,7 +83,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "HomeAndConstructionBusiness",
               name: "Paras Enterprises",
-              image: "/og-placeholder.png",
+              image: ogImage.url,
               telephone: ["+91 9425530470", "+91 9826598526"],
               email: ["parashitesh@gmail.com", "parashitesh@yahoo.com"],
               address: {

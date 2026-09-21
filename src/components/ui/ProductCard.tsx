@@ -61,7 +61,7 @@ export const ProductCard = React.forwardRef<HTMLDivElement, ProductCardProps>(
 
         {/* Content */}
         <div>
-          <h3 className="font-display text-h2 uppercase tracking-tight text-[var(--color-accent,#00E599)] mb-2">
+          <h3 className="font-display text-h2 uppercase tracking-tight text-[var(--color-accent,#2DD4E8)] mb-2">
             {title}
           </h3>
           <p className="text-text-secondary text-small mb-4">{tagline}</p>

@@ -4,10 +4,11 @@ This file is updated at the end of every session. It is the single source of tru
 
 ---
 
-## Status: SESSION 04 COMPLETE
-## Last updated: 2026-09-12 by Claude (session 04 — implementation and verification complete)
-## Current session: 04 — Case Studies + Partnerships + StatsRow improvements (plan approved; all implementation finished; final spacing confirmed visually)
-## Previous session: 03 — COMPLETE (Process + Service + B2B + Visual Refinement + Use Cases + Image Interaction, verified)
+## Status: SESSION 13 COMPLETE
+## Last updated: 2026-09-20 by Claude (session 13 — interactive scattering light burst, implementation and verification complete)
+## Current session: 13 — Interactive Scattering Light Burst (all 5 implementation increments committed and verified)
+## Previous session: 12 — COMPLETE (Full-Bleed Hero Carousel with Text Overlay, verified)
+## Note: this header block was stale at "SESSION 04" until this update — see the per-session entries below for the real, continuous history through Session 12.
 
 ## Phase 1 (Explore) — COMPLETE
 - Confirmed company-wide StatsRow figures from content-brief.md: 25+ Years, 8,000+ Installations, and 20+ Year Client Relationship
@@ -124,3 +125,140 @@ Session 09 (Final QA) complete. TS errors clean, copy proofread passed (one stal
 
 ## Known Testing Gap (Session 09)
 - **Firefox / Safari not tested:** All QA was limited to Chrome/Brave (desktop + mobile DevTools + real device). This gap is explicitly acknowledged and not assumed covered.
+
+## Note: Session 10 was never logged here
+This file has no entry for Session 10 (Hindi/English language toggle via react-i18next,
+plus the persistent top LanguageBar with font-size controls). That work is real and
+complete — see `git log` and `docs/04-process/decisions.md` for the full history — but
+the required status.md update was missed at the time. Flagging this gap explicitly rather
+than silently leaving it unexplained. Session 11 (below) is logged correctly.
+
+## Session 11 (Scroll-Synced Product Showcase) — COMPLETE
+Replaced desktop's Product Grid with a two-column scroll-synced "scrollytelling" layout
+(sticky detail panel crossfades as the user scrolls past each product image on the left).
+Mobile grid is completely unchanged, split via the existing `lg:` breakpoint. New files:
+`src/components/sections/ProductShowcase.tsx`, `src/components/ui/ProductShowcaseImage.tsx`.
+Full architecture and verification results logged in `docs/04-process/decisions.md`.
+
+**Verified:** real-scroll IntersectionObserver sync (perfect accuracy through all 9
+products), Hindi mode (detail panel + image alt text + ImageModal's own close-button
+label all translate correctly), ImageModal unchanged on the new layout, mobile confirmed
+byte-identical to pre-Session-11, Lighthouse desktop 100/100 with 0 CLS.
+
+**Discovered, logged, not fixed (out of scope):** a sitewide pre-existing hydration
+mismatch affecting every component using Framer Motion's `useReducedMotion()` to branch
+animation props (Navbar, Hero, Reveal, StaggerContainer, Partnerships, and now
+ProductShowcase, which inherited the existing pattern) — real visitors with OS-level
+reduced-motion already enabled get a console error and a wasted re-render on first page
+load, sitewide. Full repro details and fix options in `decisions.md`. Worth a dedicated
+future session.
+
+## Session 12 (Full-Bleed Hero Carousel with Text Overlay) — COMPLETE
+Redesigned Hero from a two-column layout (text left, bordered carousel box right) into a
+full-bleed background carousel with the text overlaid on a readable gradient, on both
+desktop and mobile — replacing mobile's separate stacked layout entirely. `Carousel.tsx`
+now always renders via `next/image fill` (no gradient-div/label fallback path), so
+swapping the 4 generated placeholder images for real photography later is a pure
+`hero.ts` content edit. Full gradient values, layout mechanism, and placeholder-generation
+approach logged in `docs/04-process/decisions.md`.
+
+**Verified:** real screenshots at desktop/tablet/mobile in both languages; all 4 slides
+individually checked for text readability; auto-advance, click-to-jump, pause-on-hover,
+and CTA/phone-link clickability all confirmed working after the restructure. `tsc
+--noEmit` and `npm run build` clean throughout.
+
+**Regression caught and fixed during this session's own verification pass (not a
+pre-existing issue):** the text column's full-width `z-10` wrapper was silently
+intercepting pointer events across its entire box, including empty space with no visible
+text, breaking hover-to-pause everywhere except directly over the dots. Fixed with
+`pointer-events-none`/`pointer-events-auto`. Full detail in `decisions.md`.
+
+**Known pre-existing, not introduced here:** the sitewide `useReducedMotion()` hydration
+mismatch (see Session 11 above) also surfaces in Hero/Carousel now, since they use the
+same hook — confirmed as the same already-documented issue, not a new one.
+
+## Session 13 (Interactive Scattering Light Burst) — COMPLETE
+New purely decorative canvas section between `StatsRow` and `CaseStudies`: ~160 lines
+radiating from bottom-center that bend/scatter away from the pointer or finger and spring
+back, six selectable themes swapping the background gradient and line/dot colors. New
+files: `src/components/sections/LightBurst.tsx`, `LightBurstLoader.tsx` (client wrapper
+holding the `ssr: false` dynamic import, since Next's App Router refuses that option
+directly inside `page.tsx`, a Server Component), `src/lib/content/light-burst-themes.ts`.
+Full architecture — refs-only RAF loop, IntersectionObserver pause, reduced-motion
+gating, touch handling — logged in `docs/04-process/decisions.md`.
+
+**Verified:** all 6 themes render correctly on desktop/tablet/mobile in both languages;
+real pointer/touch interaction confirmed (bend-away + spring-back physics, including a
+dispatched `pointerType: 'touch'` event on a mobile viewport); reduced-motion confirmed
+genuinely static via `canvas.toDataURL()` byte-identity, not assumption; RAF loop
+confirmed to actually pause off-screen and resume back in view, same byte-identity
+method; resize handling confirmed correct after a real viewport change; no
+`preventDefault()`/`touch-action` blocking scroll, confirmed directly. `tsc --noEmit` and
+`npm run build` clean throughout all 5 increments.
+
+**Performance:** a controlled A/B Lighthouse mobile run (LightBurst temporarily removed,
+same machine/invocation) isolated its real cost at −3 points / +110ms Total Blocking
+Time, CLS unchanged at 0. The full-page score (80) is lower than Session 08's documented
+87, but the isolated "without LightBurst" run on this same environment scored 83 — most
+of that gap is pre-existing environment/Lighthouse-version variance, not a regression
+introduced this session. Not optimized further (e.g. deferring the dynamic import itself
+until scroll-proximity) since that wasn't part of the agreed plan; flagged as a possible
+future increment.
+
+**Known pre-existing, not introduced here:** same sitewide `useReducedMotion()` hydration
+mismatch as Sessions 11-12, now also present in this component since it uses the same
+hook — confirmed same React error #418, not a new failure mode.
+
+## Post-Session 13 note: page section reorder
+Section reorder (B2B/StatsRow/LightBurst moved to immediately after Hero) introduced one
+same-token background pairing (ServiceApproach → CaseStudies, both bg-secondary) since
+the moved block's wildcard LightBurst gradient previously broke up that stretch.
+Confirmed via screenshot this reads as a continuous dark section, not a visible
+seam/mistake — accepted as-is, no fix needed.
+
+## Session 14 (Global Site-Wide Theming) — COMPLETE
+LightBurst's theme selector now controls the entire site's color scheme, not just its own
+canvas — backgrounds, text, buttons, borders, and Carousel's dot indicators all re-skin
+live across 6 themes. Colors moved out of `@theme inline` into the runtime-overridable
+`@theme` + `:root` + `:root[data-site-theme]` pattern (same one proven for type-scale/
+Hindi fonts). New `SiteThemeProvider` (mirrors `I18nProvider`'s SSR-safe pattern exactly)
+holds the shared theme index; LightBurst reads/writes it instead of owning local state.
+No persistence, matching the language/font-size convention. Full architecture, the
+HSL-derivation method for accentHover/accentMuted/borderAccent, the phantom-CSS-variable
+audit and fixes, and the transition-smoothness reasoning are logged in
+`docs/04-process/decisions.md`.
+
+**Found and fixed along the way:** four CSS variables referenced via `var()` throughout
+several components but never actually declared anywhere (`--color-bg-card`,
+`--color-border-card`, `--color-border-subtle`, `--color-bg-accent`), plus `Card.tsx`
+referencing a `--glow-accent` name that never matched the real `--shadow-glow-accent`
+token — both bug classes meant those elements were permanently stuck on a hardcoded
+fallback, immune to any theming. Fixing `--color-bg-accent` also fixed a live pre-existing
+bug: ServiceApproach's icon-circle backgrounds were actually rendering faintly green
+(a stale leftover accent color) instead of cyan — confirmed via direct A/B computed-style
+comparison against a pre-Session-14 build, and the one intentional exception to Daytime's
+otherwise-confirmed pixel-identity.
+
+**Verified:** full-page screenshots (not just LightBurst's section) under all 6 themes at
+desktop and mobile — all correct, zero console errors. Daytime pixel-identical to
+pre-Session-14 except the flagged ServiceApproach fix above; the only other screenshot
+differences found were expected independent-load nondeterminism (canvas RNG, stats
+count-up timing, partner-logo marquee position), not regressions. No hydration mismatch
+from `SiteThemeProvider` itself (confirmed via raw SSR HTML and repeated fresh loads); the
+one hydration error that does appear under `prefers-reduced-motion` was isolated via an
+A/B worktree build and confirmed to be the same already-documented sitewide
+`useReducedMotion()` mismatch from Session 11, not new. Hindi + font-scale + site-theme
+confirmed composing correctly under two different non-Daytime themes at once. The 300ms
+sitewide color cross-fade verified smooth via real frame-by-frame sampling, not just
+correct on paper. Lighthouse mobile Performance 89 (vs. Session 13's documented isolated
+baseline of 80), desktop 99/97/100/100 with CLS 0 — no regression.
+
+## Post-Session 14 note: site-wide palette redesign (5 of 6 themes)
+New finalized color values applied for Pre-dawn, Sunrise, Dusk, Sunset, and Night from
+design prototyping — Daytime untouched. Only 6 core values were newly specified per theme;
+every other token was re-derived using Session 14's established methods (now formally
+documented in `decisions.md`, including a newly-formalized `bgSecondary`/`bgElevated`
+derivation formula added to the standing method list for future themes). Verified via
+full-page screenshots (desktop + mobile) for all 5 changed themes, Daytime confirmed
+unchanged, Hindi + font-scale reconfirmed composing correctly under 2 of the changed
+themes, `tsc`/build clean, zero console errors throughout.

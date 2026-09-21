@@ -5,16 +5,26 @@ import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'framer-motion';
 
 const clients = [
-  'Chouksey Group',
-  'Mosaji Group',
+  'Moasaji Restaurant',
+  'Dream Point',
+  'Grand Lotus',
+  'Jai Durga Group',
+  'JD Foods',
   'Sanjeevani Hospital',
-  'Mount Litra Zee School',
-  'Mahavir Coal Washiery',
-  'Phil Coal and Steel',
-  'Jai Durga Agro',
-  'Jai Durga Oil Mill',
-  "Achiever's Public School",
-  'Maharshi Vidya Mandir',
+  'Chouksey Group of Colleges',
+  'Bachpan Play School',
+  'Maharshi School',
+  'Achievers Public School',
+  'Juneja Eye Hospital',
+  'Saharsh Hospital',
+  'Umang Hospital',
+  'Meghani Hospital',
+  'Grand Gulmohar Hotel',
+  'Phil Coal and Steel Plant',
+  'Hanumant Alloys',
+  'Moasaji KIA / Honda',
+  'Arpa River Valley International School',
+  'Meenakshi Group',
 ];
 
 export const Partnerships = () => {
@@ -65,7 +75,7 @@ export const Partnerships = () => {
             100% { transform: translateX(-50%); }
           }
           .animate-marquee {
-            animation: marquee 30s linear infinite;
+            animation: marquee 48s linear infinite;
           }
           @media (prefers-reduced-motion: reduce) {
             .animate-marquee { animation: none; }

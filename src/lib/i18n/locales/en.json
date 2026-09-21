@@ -3,13 +3,20 @@
     "ctaSiteSurvey": "Get Free Site Survey",
     "callNowPrefix": "Call Now:",
     "callAriaLabelPrefix": "Call",
-    "brandTagline": "Let's Secure Your World with Reliability and Innovation"
+    "brandTagline": "Let's Secure Your World with Reliability and Innovation",
+    "brandName": "Paras Enterprises"
+  },
+  "languageBar": {
+    "decreaseAriaLabel": "Decrease font size",
+    "resetAriaLabel": "Reset font size to normal",
+    "increaseAriaLabel": "Increase font size"
   },
   "navbar": {
     "links": {
+      "themes": "Themes",
       "products": "Products",
       "process": "Process",
-      "caseStudies": "Case Studies",
+      "caseStudies": "Our Clients",
       "whyUs": "Why Us",
       "contact": "Contact"
     },
@@ -21,7 +28,8 @@
     "headline": "Protect What Matters",
     "subheadline": "25+ years of trusted security and service — protecting homes, businesses, and institutions across Bilaspur.",
     "supportingLine": "8,000+ installations across Bilaspur and nearby areas",
-    "carouselAriaLabel": "Hero visual carousel"
+    "carouselAriaLabel": "Hero visual carousel",
+    "carouselImageAlt": "Security and automation solutions by Paras Enterprises"
   },
   "carousel": {
     "dotsAriaLabel": "Carousel slides",
@@ -134,6 +142,16 @@
     "installations": "Installations",
     "yearClientRelationship": "Year Client Relationship"
   },
+  "interactiveBurst": {
+    "themes": {
+      "preDawn": "Pre-dawn",
+      "sunrise": "Sunrise",
+      "daytime": "Daytime",
+      "dusk": "Dusk",
+      "sunset": "Sunset",
+      "night": "Night"
+    }
+  },
   "caseStudies": {
     "headline": "Case Studies",
     "subheadline": "Experience the success with our dedicated approach",
@@ -142,16 +160,20 @@
     "resultsLabel": "Results:",
     "studies": {
       "chouksey": {
+        "clientName": "Chouksey Engineering College",
         "painPoint": "Outdated security left key campus areas unmonitored, raising safety concerns and theft.",
         "solution": "Installed a setup of 600+ CCTV system with real-time monitoring and comprehensive coverage.",
         "result": "Security incidents dropped by over 80%, significantly improving safety for students and staff.",
-        "testimonial": "Working with Paras Enterprises for 20+ years has been seamless. They gave us exactly what we needed, when we needed."
+        "testimonial": "Working with Paras Enterprises for 20+ years has been seamless. They gave us exactly what we needed, when we needed.",
+        "testimonialAuthor": "Ashish Jaiswal, Director, CEC"
       },
       "sanjeevani": {
+        "clientName": "Sanjeevani Hospital",
         "painPoint": "Security gaps in sensitive areas led to unauthorized access and safety risks.",
         "solution": "Installed a setup of 150+ cameras with 24/7 monitoring to secure critical zones.",
         "result": "Unauthorized access reduced by 70%, enhancing staff and patient safety.",
-        "testimonial": "Very approachable and quick service. They took the time to understand our concerns and delivered the solution in the right time."
+        "testimonial": "Very approachable and quick service. They took the time to understand our concerns and delivered the solution in the right time.",
+        "testimonialAuthor": "Dr. Vinod Tiwari, Director"
       }
     }
   },
@@ -159,6 +181,7 @@
     "headline": "Built on Trusted Partnerships"
   },
   "contact": {
+    "address": "Shop No. 26, Ground Floor, Ambe Anjani E Plaza, CMD Chowk, near Apollo City Center, Bilaspur, Chhattisgarh",
     "eyebrow": "Let's Talk!",
     "inquiryLabel": "Inquiry",
     "serviceLabel": "Service",
@@ -170,6 +193,7 @@
   "footer": {
     "quickLinksHeading": "Quick Links",
     "contactUsHeading": "Contact Us",
+    "getDirectionsButton": "Get Direction on Maps",
     "copyrightTemplate": "© {{year}} Paras Enterprises. All rights reserved."
   },
   "imageModal": {

@@ -162,3 +162,643 @@
   feature list. This is not a bug or incomplete translation — it's a deliberate content
   choice. Do not "fix" this to match English array length in any future session without
   checking with Kewal first.
+
+## Session 11: Discovered Bug (Out of Scope, Confirmed) — Sitewide Hydration Mismatch for `prefers-reduced-motion` Users
+- **Discovery context:** Found while verifying Increment 3's Framer Motion crossfade
+  (`ProductShowcase.tsx`) under a real emulated `prefers-reduced-motion: reduce` browser
+  setting. Reproduced against the dev server with full (non-minified) React error output
+  to confirm scope before writing this entry — this is not speculation, it's a captured
+  stack trace.
+- **Bug:** Every component that calls Framer Motion's `useReducedMotion()` and branches
+  its animation props on the result (`shouldReduceMotion ? {...} : {...}`) hydration-
+  mismatches for any visitor who already has OS-level "reduce motion" enabled *before*
+  the page loads. Root cause: `useReducedMotion()` reads `window.matchMedia` synchronously
+  on the very first client render; Next.js SSR has no `window` at all and always renders
+  assuming no preference (the non-reduced, animated variant). A real visitor whose browser
+  already reports `true` on first paint gets a client render that disagrees with the
+  server-rendered HTML, and React logs "Hydration failed... this tree will be regenerated
+  on the client" and discards/re-renders the affected subtree.
+- **Confirmed scope (from an actual captured hydration diff, not inference)**: `Navbar.tsx`
+  (`motion.header`'s scroll-based padding/background/blur styles), `Hero.tsx` (the scan-line
+  effect and the entire hero-load stagger sequence — eyebrow/headline/subheadline/CTAs/
+  supporting line), `Reveal.tsx` (used by TrustPillars, CaseStudies, B2BSection, ProductGrid
+  section intros), `StaggerContainer`/`StaggerItem` (TrustPillars badges, ProductGrid cards),
+  and `Partnerships.tsx`'s marquee-vs-static-fallback branch. This is not a short list — it's
+  effectively every scroll/load animation on the page. `ProductShowcase.tsx`'s new crossfade
+  (built this session) exhibits the identical pattern and appeared in the same diff, but it
+  *inherited* the site's existing approach rather than introducing a new failure mode.
+- **Practical impact**: end state is still functionally correct after React's automatic
+  recovery (the "tree will be regenerated" — verified: `ProductShowcase`'s reduced-motion
+  transition settles to the correct instant/no-translate state), but every affected visitor
+  gets a console error and a wasted extra client-side render pass on first load, sitewide.
+  This is a real, user-facing correctness gap for an actual accessibility-conscious user
+  segment (anyone with OS-level reduce-motion on), not just console noise.
+- **Not fixed here:** Confirmed sitewide and pre-existing (predates Session 11 entirely —
+  Navbar/Hero/Reveal were never touched this session). Fixing requires either gating every
+  `useReducedMotion()`-branched animation so its *initial* render always matches what SSR
+  produces (e.g. only applying the reduced-motion branch after a mount-gated flag flips, or
+  switching to a CSS-`@media (prefers-reduced-motion)`-driven approach for static states),
+  or auditing and updating every one of the affected components individually — a dedicated
+  session's worth of work across many files, not an Increment 3 fix.
+- **What Increment 3 did fix, within its own scope:** `ProductShowcase.tsx`'s crossfade now
+  uses `duration: shouldReduceMotion ? 0.01 : 0.3` (matching `Hero.tsx`'s exact existing
+  `0.01`-for-reduced-motion convention, not just omitting the y-translate), and
+  `ProductShowcaseImage.tsx`'s active/inactive scale treatment gained
+  `motion-reduce:scale-100` (matching `ProductCard.tsx`'s existing
+  `motion-reduce:hover:scale-100` convention) so only opacity changes under reduced motion,
+  never scale.
+
+## Session 11: Scroll-Synced Product Showcase — Final Architecture
+- **Decision:** Replaced desktop's Product Grid with a two-column "scrollytelling" layout
+  (left column: 9 scrolling product images; right column: a sticky detail panel that
+  crossfades as the active product changes). Mobile keeps the original grid completely
+  unchanged, split via the site's existing `lg:` (1024px) breakpoint convention.
+- **Component architecture:** `ProductGrid.tsx` now resolves all product text via `t()`
+  exactly once into a single `resolvedProducts` array, then renders `lg:hidden` (the
+  untouched original grid, via the untouched `ProductCard.tsx`) and `hidden lg:block`
+  (the new `ProductShowcase.tsx`) from that same array — no duplicated translation
+  lookups between the two layouts. New files: `src/components/sections/ProductShowcase.tsx`
+  (scroll-sync state + sticky panel) and `src/components/ui/ProductShowcaseImage.tsx`
+  (per-image click-to-expand button, mirroring `ProductCard`'s existing `ImageModal` trio
+  exactly).
+- **Active-image detection:** one `IntersectionObserver` per row (`rootMargin: '-45% 0px
+  -45% 0px', threshold: 0`), tracking the full set of currently-intersecting rows and
+  deterministically choosing the lowest index among them (rather than "whichever observer
+  fires last") — rows are tall (`min-h-[70vh]`) enough that more than one can intersect
+  the center band simultaneously in edge cases.
+- **Detail panel transition:** `AnimatePresence` (`mode="wait"`) crossfade reusing
+  motion-guide.md's existing opacity+translateY vocabulary (0.3s, `[0.16,1,0.3,1]`),
+  dropping to `0.01s` and no translate under reduced motion (matching `Hero.tsx`'s
+  existing convention).
+- **Active/inactive image treatment:** `opacity-100 scale-100` active, `opacity-40
+  scale-95` inactive, `motion-reduce:scale-100` (matching `ProductCard.tsx`'s existing
+  hover-scale reduced-motion pattern).
+- **Verification results:** real natural-scroll test confirms the detail panel and active
+  image stay in perfect sync through all 9 products in order, correctly clamping at the
+  last product past the end of the section. Hindi mode confirmed working throughout
+  (detail panel text, image alt text, and `ImageModal`'s own close-button label all
+  translate correctly). `ImageModal` confirmed working unchanged on the new layout.
+  Mobile confirmed byte-identical to the pre-Session-11 grid. Lighthouse desktop
+  performance: 100/100, CLS 0 — the new `min-h-[70vh]` rows and sticky panel introduce
+  no layout shift.
+- **Discovered but out of scope:** a sitewide pre-existing hydration mismatch for
+  `prefers-reduced-motion` users, logged in detail immediately above this entry.
+
+## Session 12: Full-Bleed Hero Carousel with Text Overlay
+- **Decision:** Redesigned Hero from a two-column layout (text left, bordered carousel box
+  right) into a full-bleed background carousel with text overlaid on a readable gradient,
+  on both desktop and mobile — replacing mobile's separate stacked layout entirely.
+- **Layout mechanism:** `Carousel` now renders as an `absolute inset-0` background layer.
+  The text column keeps its existing width by leaving `grid lg:grid-cols-2` in place and
+  simply deleting the second grid child — CSS Grid still allocates two 50% column tracks
+  from the container's own `grid-cols-2` regardless of child count, so the text column's
+  width is measurably identical to before (verified: text's right edge sits at a constant
+  47-48% of viewport width across 1024-1920px, since `max-w-7xl` caps the two-column split
+  once the container hits its cap).
+- **Header offset:** `Hero.tsx`'s `pt-36 lg:pt-[104px]` (144px mobile / 104px desktop) was
+  leftover spacing from the old stacked mobile layout, not a real requirement — Navbar +
+  LanguageBar measure 104px on both breakpoints (`top-8` + `min-h-[72px]` + no `lg:`
+  variant). Flattened to a single `pt-[104px]`.
+- **Gradient values, desktop** (`linear-gradient(to right, rgba(10,10,10,.90) 0%,
+  rgba(10,10,10,.90) 50%, rgba(10,10,10,0) 78%)`): solid through 50% covers the measured
+  worst-case text-right-edge (48.3%) with margin at every desktop width; fades to clear by
+  78% for a smooth ~28-percentage-point blend, not a hard edge.
+- **Gradient values, mobile** — NOT a top/bottom split (real measurement showed text
+  already spans the full available width at mobile sizes, with Hindi wrapping to more
+  lines than English, ruling out a left-right split; and the text block is vertically
+  *centered*, not edge-anchored, ruling out a one-directional top-or-bottom split too).
+  Used a symmetric vertical vignette instead: `linear-gradient(to bottom,
+  rgba(10,10,10,0) 0%, rgba(10,10,10,.90) 15%, rgba(10,10,10,.90) 85%,
+  rgba(10,10,10,0) 100%)`. Measured full text-block height at mobile widths (43% of
+  viewport in English, 48% in Hindi worst-case) centered in the section places the text's
+  real occupied range at 26-74% of viewport height — fully inside the gradient's 15-85%
+  solid zone, with margin on both sides.
+- **Dot legibility:** wrapped the existing dot row in a `bg-[rgba(10,10,10,0.55)]
+  backdrop-blur-md` pill, self-contained so it doesn't interact with either gradient's
+  orientation.
+- **Placeholder images:** no real photography exists yet, and no placeholder asset existed
+  anywhere in the repo either. Generated 4 neutral images (`public/images/hero-placeholder-
+  {1-4}.jpg`) via `sharp` (already a transitive dependency, no new package added): abstract
+  diagonal/radial gradients using the site's existing dark palette tokens plus a
+  low-opacity accent-teal glow, with no baked-in placeholder text. Radial gradients
+  rendered with visible banding at these very subtle opacity ranges; `resvg` (sharp's SVG
+  renderer) has incomplete `<filter>`/`feTurbulence` support, so dithering was done as a
+  raw-buffer pixel-noise post-process instead of an SVG filter, then saved as JPEG (the
+  noise defeats PNG compression — ~1.2MB PNG vs ~80KB JPEG per image).
+  `CarouselSlide` dropped `label`/`backgroundClass` for a required `image` field, and
+  `Carousel.tsx` always renders via `next/image fill object-cover` unconditionally — no
+  gradient-div fallback path — so swapping in real photos later is a pure `hero.ts` path
+  edit with zero component changes.
+- **i18n:** image `alt` text uses a new `hero.carouselImageAlt` key (translated, generic,
+  reused across all slides since they're interchangeable imagery) passed as a prop from
+  `Hero.tsx` into `Carousel.tsx`, following the same pattern already established for
+  `ariaLabel` — not hardcoded English, not left undefined.
+- **Regression found and fixed during verification:** the text column's wrapper is `w-full`
+  and stacked at `z-10` above the carousel — even though most of its box is visually empty
+  (no second grid child anymore), that empty space still captured pointer events by
+  default, silently breaking the carousel's hover-to-pause behavior everywhere except
+  directly over the `z-20` dots. Caught via a Playwright hover test that timed out with
+  "subtree intercepts pointer events." Fixed with `pointer-events-none` on the text
+  wrapper and `pointer-events-auto` on the two CTA links.
+- **Verified:** real screenshots at desktop (1440px)/tablet (820px)/mobile (390px), both
+  languages; all 4 slides individually checked for text readability against their actual
+  gradient blob position; auto-advance, click-to-jump, pause-on-hover (including hovering
+  empty space with no visible text), and CTA/phone-link clickability all confirmed working
+  post-restructure. `tsc --noEmit` and `npm run build` clean throughout all 3 increments.
+- **Known pre-existing, not introduced here:** the sitewide `useReducedMotion()` hydration
+  mismatch (logged in the Session 11 entry above) also surfaces in `Hero.tsx`/`Carousel.tsx`
+  now, since they use the same hook — confirmed via a `reducedMotion: 'reduce'` Playwright
+  context, same React error #418 as already documented, not a new failure mode.
+
+## Session 13: Interactive Scattering Light Burst
+- **Decision:** Added a purely decorative canvas visual — ~160 lines radiating from
+  bottom-center, bending/scattering away from the pointer or finger, six selectable
+  themes swapping the background gradient and line/dot colors. Placed between `StatsRow`
+  and `CaseStudies` in `page.tsx`, with no wrapping `bg-primary`/`bg-secondary` div — the
+  canvas's own theme gradient replaces the alternating-background convention entirely for
+  this one section.
+- **Component:** `src/components/sections/LightBurst.tsx` (named + default export,
+  matching `CaseStudies.tsx`'s pattern), theme data in
+  `src/lib/content/light-burst-themes.ts` as a plain constants array — deliberately not
+  mapped to the site's semantic design tokens, since this is a separate decorative
+  palette per the confirmed design.
+- **Dynamic import with `ssr: false`:** Next's App Router refuses `ssr: false` inside a
+  Server Component, and `page.tsx` has no `'use client'`. Rather than making the whole
+  page a client component, added a small `LightBurstLoader.tsx` client wrapper that holds
+  the `dynamic(() => import('./LightBurst'), { ssr: false })` call, imported directly (no
+  further `dynamic()` needed) from `page.tsx`. This is a deliberate departure from the
+  `CaseStudies`/`Footer` dynamic-import precedent (neither sets `ssr: false` — they're
+  code-split but still SSR'd); justified here because canvas/RAF/IntersectionObserver
+  setup is entirely client-only with zero server-renderable output.
+- **Refs-only RAF architecture:** line state (angle, base length, phase, offset,
+  velocity), pointer position, and the active theme are all mutable refs, never React
+  state — the RAF loop never triggers a re-render. Only the active theme *index* is React
+  state (drives which pill button shows selected); the long-lived RAF loop reads the
+  current theme via a ref (`themeIndexRef`) kept in sync by a separate one-line effect,
+  so clicking a theme button doesn't tear down and recreate the canvas/context/observer —
+  confirmed via a wrapped `requestAnimationFrame` call counter (continuous native
+  scheduling, not React-render-driven) and confirming the canvas DOM node's identity
+  survives a theme click (no remount).
+- **IntersectionObserver:** single element (the section root), single
+  `entry.isIntersecting` boolean, `rootMargin: '200px'` — not `ProductShowcase.tsx`'s
+  multi-row center-band pattern, which solves a different problem (which of many rows is
+  active) that doesn't apply to a single always-either-visible-or-not decorative section.
+  Going off-screen doesn't just skip drawing a frame: the loop's next scheduled call
+  checks the in-view flag and returns without calling `requestAnimationFrame` again,
+  actually stopping the chain; the observer callback restarts it. Verified via
+  `canvas.toDataURL()` byte-identity checks: static while scrolled away, changing again
+  once scrolled back.
+- **Reduced motion:** `useReducedMotion()` (framer-motion, matching Hero/CaseStudies/
+  Footer's existing convention) is checked before any pointer listener, observer, or
+  `requestAnimationFrame` call is made — the static branch draws exactly one frame (no
+  sway) and never starts the loop, rather than starting and immediately stopping it. The
+  effect depends on `[shouldReduceMotion]` so a live OS-preference toggle mid-visit
+  correctly rebuilds into the right branch. Verified via `canvas.toDataURL()`:
+  byte-identical across a 1.5s window under `reducedMotion: 'reduce'` — genuinely zero
+  animation, not just slow. The React error #418 seen in this mode is the same
+  pre-existing sitewide hydration mismatch already logged above, not a new failure mode.
+- **Touch handling:** pointer tracked via the unified Pointer Events API
+  (`pointermove`/`pointerleave`/`pointercancel`) rather than separate `mousemove`+
+  `touchmove` listeners — confirmed with the user as the modern equivalent, since
+  `pointermove` fires identically to `touchmove` on touch devices. No `preventDefault()`
+  anywhere in the handlers and no `touch-action` override, verified two ways: computed
+  `touch-action` on the canvas is `"auto"`, and a dispatched cancelable `PointerEvent`'s
+  `defaultPrevented` is `false` after the handler runs.
+- **Icons:** no icon library exists anywhere in this project (checked). The six theme
+  icons are hand-drawn inline SVGs matching every other icon's existing stroke convention
+  (24x24 viewBox, `stroke="currentColor"`, `strokeWidth="2"`, round caps/joins) rather
+  than adding a new dependency for six static icons.
+- **Theme picker UI:** reuses `Button`'s existing `primary`/`secondary` variants directly
+  for selected/unselected state — no new button styling introduced. `cn()`'s
+  `tailwind-merge` usage lets a `className="px-4 py-2"` override reliably win over
+  `Button`'s default `px-6 py-3` padding, confirmed before relying on it.
+- **Performance:** a controlled before/after Lighthouse mobile comparison (same machine,
+  same Lighthouse invocation, `LightBurst` temporarily removed from `page.tsx` for the
+  "without" run) isolated its actual cost: −3 performance points, +110ms Total Blocking
+  Time, CLS unchanged at 0 in both runs. The full session (with LightBurst) scored 80 vs.
+  Session 08's documented baseline of 87, but the isolated "without LightBurst" run on
+  this same environment scored 83 — meaning roughly 4 of those 7 points are pre-existing
+  environment/Lighthouse-version variance unrelated to this session, and about 3 points
+  are LightBurst's genuine, modest cost. Not optimized further here (e.g. deferring the
+  dynamic import itself until scroll-proximity, not just pausing the RAF post-mount) since
+  that wasn't part of the agreed plan — flagged as a possible future increment if tighter
+  performance is wanted.
+- **i18n:** six theme labels under `interactiveBurst.themes.*` in both `en.json`/
+  `hi.json`, resolved via `t()` — confirmed no raw/unresolved key strings visible in
+  either language.
+- **Verified:** all 6 themes render with correct colors on both desktop/tablet/mobile;
+  real pointer-move interaction shows lines bending away from the cursor with
+  proportionally larger tip dots, then springing back once the pointer leaves; the same
+  scatter behavior confirmed via a dispatched `PointerEvent` with `pointerType: 'touch'`
+  on a mobile viewport; canvas resizes correctly (buffer width recalculated as
+  `clientWidth * dpr`) after a real viewport resize, no stretching/distortion.
+
+## Post-Session 13 note: LightBurst theme palette redesign
+LightBurst theme palette redesigned for 5 of 6 themes (Pre-dawn, Sunrise, Dusk, Sunset,
+Night) — original palette had too much overlap (Sunrise/Sunset shared near-identical gold
+line color, Pre-dawn/Dusk/Night all leaned on similar dark purple-blue). New palette gives
+each theme a distinct hue family and brightness range. Daytime kept unchanged as the
+default. Iterated and approved via visual prototyping before implementation.
+
+Verified via direct canvas pixel sampling (`ctx.getImageData()` at the gradient's top and
+bottom, not just visual inspection) that all 6 themes render the exact specified hex
+values, and that Daytime is pixel-identical to its pre-existing values. Confirmed no
+leftover old hex values anywhere in the codebase via grep.
+
+## Post-Session 13 note: LightBurst theme transition cross-fade
+LightBurst theme transitions now cross-fade smoothly (450ms linear interpolation) instead
+of switching instantly, verified via real pixel sampling at multiple points in the
+transition. Two pre-existing bugs found and fixed along the way: under reduced motion,
+theme clicks and window resizes never triggered a redraw (canvas only painted once on
+initial mount) — both now correctly redraw via the same mechanism the transition logic
+required.
+
+## Session 14 (Global Site-Wide Theming) — COMPLETE
+Lifted LightBurst's theme selector from "affects only its own canvas" to "controls the
+entire site's color scheme." Selecting a theme now re-skins backgrounds, text, buttons,
+borders, and the Carousel's dot indicators sitewide, live. LightBurst's own decorative
+canvas palette (`light-burst-themes.ts`, locked in Session 13) is untouched — only the
+shared *selection index* became global; the sitewide UI palette is a separate,
+independently-designed, contrast-checked table (see finalized values in
+`docs/04-process/session-14.md`).
+
+**CSS architecture:** all color tokens moved out of `@theme inline` into the same
+non-inline `@theme` + `:root` + `:root[data-attr]` pattern already proven for type-scale
+(Session 08) and Hindi fonts (Session 10) — required because an `inline` theme value
+cannot be overridden at runtime. Added `:root[data-site-theme="..."]` blocks for the 5
+non-Daytime themes, applied via a new `SiteThemeProvider` (mirrors `I18nProvider` exactly:
+`'use client'`, Context holds the index, a `useEffect` writes
+`document.documentElement.setAttribute('data-site-theme', ...)`, default state matches
+Daytime so SSR output is always correct pre-hydration — confirmed no `data-site-theme`
+attribute is present in raw SSR HTML). No persistence, matching the existing
+language/font-size convention — resets to Daytime every visit.
+
+**Derived tokens — HSL-delta method:** `accentHover`/`accentMuted`/`borderAccent` weren't
+specified per-theme in the finalized palette, so they were derived by converting Daytime's
+existing accent/hover/muted to HSL, measuring the exact ΔS/ΔL Daytime's hover and muted
+already have from its accent (hover: same hue, S +2.9pts, L +10.8pts; muted: same hue, S
+−15.4pts, L −25.3pts), then applying those same deltas to each theme's own accent
+hue/S/L and converting back to hex. `border-accent` is simply accent at 40% alpha in
+Daytime, reproduced the same way per theme. Verified the method by re-deriving Daytime's
+own hover/muted from the deltas and confirming they reproduce the real values to within
+1-2 units (rounding only).
+
+**Phantom-variable audit and fixes:** grepping every component for hex values that might
+bypass the token system (this session's version of the Session 08 type-scale check) found
+every hex was already inside a `var(--token, #fallback)` expression — but four variable
+names were referenced and never actually declared anywhere in `globals.css`
+(`--color-bg-card`, `--color-border-card`, `--color-border-subtle`, `--color-bg-accent`),
+meaning they always silently rendered their hardcoded fallback, immune to any theming
+(current or this session's). Also found, while assembling the CSS diff: `Card.tsx`'s hover
+glow referenced `--glow-accent`, a name that never matched the actually-declared
+`--shadow-glow-accent` token — same bug class, just a naming mismatch instead of a missing
+declaration. All now properly declared/renamed and given per-theme values (`bg-card` =
+that theme's `bg-secondary`; `border-card` = that theme's `bg-elevated` +6 per RGB channel;
+`border-subtle` = `bg-elevated` −2 per channel — both offsets measured from Daytime's
+existing fallback-to-`bg-elevated` relationship). `--color-bg-accent` was split into two
+tokens (`--color-bg-accent` / `--color-bg-accent-strong`) because its call sites used two
+different baked alpha levels (`#00E59910` / `#00E59920`) that a single token would have
+collapsed into one. Carousel's dot indicators — explicitly named by Kewal as something
+that must change with the theme — were confirmed already correctly wired to the real
+`--color-accent` token; only their fallback text was stale.
+
+**Daytime pixel-identity exception (intentional, approved):** `--color-bg-accent`'s
+phantom fallback was the stale `#00E599` (leftover green from an earlier accent color),
+not the current real accent — meaning ServiceApproach's icon-circle backgrounds were
+*actually rendering faintly green*, a live pre-existing bug invisible until this session's
+audit. Declaring the token with the current real accent (`#2DD4E8`) instead of literally
+preserving the buggy green fixes it as a side effect, at the cost of a narrow, deliberate
+exception to "Daytime stays pixel-identical." Confirmed via a direct A/B build (git
+worktree at the pre-Session-14 commit, same viewport/scroll/wait conditions): computed
+style sampled directly on the icon circle reads `rgba(0, 229, 153, 0.063)` on the old build
+vs `rgba(45, 212, 232, 0.063)` on the new one — everything else byte-for-byte identical in
+that region. Full-page pixel-diff across the entire site found zero other differences
+beyond expected independent-page-load nondeterminism (LightBurst's `Math.random()` line
+generation, StatsRow's in-flight count-up animation phase, the partner-logo marquee's
+scroll position, and ProductShowcase image lazy-load timing) — none are regressions.
+
+**Stale fallback cleanup:** several call sites already correctly referenced real, declared
+tokens (`--color-accent`) but with a stale `#00E599` (leftover green) fallback instead of
+the current `#2DD4E8` — cosmetic and inert since the fallback never activates while the
+real token exists, but corrected in the same pass across `Carousel.tsx`, `StatsRow.tsx`,
+`ServiceApproach.tsx`, `ProcessTimeline.tsx`, `ProductCard.tsx`, and `CaseStudyCard.tsx`
+since those files were already being touched for the phantom-variable fix.
+
+**Transition smoothness:** chose a universal selector scoped strictly to
+`background-color`/`color`/`border-color` (300ms ease) over matching LightBurst's own
+450ms cross-fade or an unscoped `transition: all`. This is safe against fighting
+component-level hover animations because a Tailwind `transition-colors` utility sets
+`transition` via a class selector (specificity 0,1,0), which always outranks the universal
+selector (0,0,0) regardless of source order — confirmed by direct testing, no interaction
+animations were affected. 300ms (vs. LightBurst's 450ms) was chosen because many
+simultaneous sitewide color changes read as slower than one decorative canvas at the same
+duration. Verified in practice, not just on paper: sampling `body`'s computed
+`background-color` every animation frame after a real click showed genuine gradual
+interpolation (e.g. Daytime `rgb(10,10,10)` through intermediate values to Sunset's exact
+`rgb(33,10,27)` by ~300ms), not an instant snap — reads as a deliberate, visible cross-fade
+and pairs naturally with LightBurst's own longer 450ms canvas fade finishing slightly
+after the sitewide chrome. No tuning needed.
+
+**Verified:** full-page screenshots (top to bottom, not just LightBurst's section) under
+all 6 themes at both desktop (1440px) and mobile (390px) — all backgrounds, text, buttons,
+borders, and cards re-skin correctly with zero console errors. Daytime confirmed
+pixel-identical to the pre-Session-14 site except the one flagged/approved exception
+above. No hydration mismatch from `SiteThemeProvider` itself across repeated fresh loads
+(zero console output of any kind, and raw SSR HTML confirmed to have no `data-site-theme`
+attribute) — the one hydration error that does appear (`React error #418` under
+`prefers-reduced-motion: reduce`) was isolated via an A/B worktree build and confirmed
+present identically before any Session 14 change: it's the same already-documented
+sitewide `useReducedMotion()` mismatch from Session 11, not something this session
+introduced. Hindi + font-scale + site-theme confirmed composing correctly together under
+two different non-Daytime themes (Sunrise, Night) simultaneously, all three
+`data-*`/CSS-variable states correct with zero errors. Lighthouse: mobile Performance 89
+(vs. Session 13's documented isolated baseline of 80), desktop Performance 99 /
+Accessibility 97 / Best Practices 100 / SEO 100 / CLS 0 — no regression; small differences
+from prior sessions' numbers are consistent with the already-documented
+environment/Lighthouse-version variance, not something newly introduced here.
+
+## Standing method: deriving bgSecondary/bgElevated from bgPrimary
+Formalized during the Session 14 palette redesign below, this is now the established
+method for this project whenever a theme's `bgPrimary` changes or a new theme is added —
+alongside the already-documented `accentHover`/`accentMuted` (HSL-delta from Daytime),
+`borderAccent` (accent at 40% alpha), `bgCard`/`borderCard`/`borderSubtle` (RGB-offset from
+`bgElevated`), and `bgAccent`/`shadowGlowAccent` (alpha-suffixed accent) methods.
+
+`bgSecondary` and `bgElevated` were never actually derived by formula when Session 14 first
+shipped — they were given directly as literal table values alongside `bgPrimary`. Measuring
+Daytime's own `bgPrimary → bgSecondary → bgElevated` progression in HSL space revealed a
+clean, consistent pattern: **same hue and saturation as `bgPrimary`, lightness stepped up by
+two fixed amounts**. In Daytime: L 3.92% → 7.84% → 10.98%, i.e. ΔL₁ = +3.92pts (primary→
+secondary) and ΔL₂ = +3.14pts (secondary→elevated), with H/S unchanged (both 0%, since
+Daytime is grayscale).
+
+**Formula:** for any theme, convert `bgPrimary` to HSL, then:
+- `bgSecondary` = same H, same S, L + 3.92pts
+- `bgElevated` = same H, same S, L + 3.92pts + 3.14pts (i.e. `bgSecondary`'s L + 3.14pts)
+
+convert back to hex. These two ΔL constants are fixed — always measured from Daytime,
+never re-measured per-theme — exactly the same philosophy as the `accentHover`/
+`accentMuted` deltas.
+
+## Post-Session 14 note: site-wide palette redesign (5 of 6 themes)
+Replaced the color values for Pre-dawn, Sunrise, Dusk, Sunset, and Night with a new
+finalized palette from design prototyping — Daytime left completely untouched. Only the 6
+core values per theme were newly specified (`bgPrimary`, `textPrimary`, `textSecondary`,
+`accent`, `accentText`, `border`); every other token (`bgSecondary`, `bgElevated`,
+`accentHover`, `accentMuted`, `borderAccent`, `bgCard`, `borderCard`, `borderSubtle`,
+`bgAccent`, `bgAccentStrong`, `shadowGlowAccent`, `shadowGlowAccentSoft`) was re-derived
+using the exact methods above and already documented earlier in this file, with the new
+accent/background values as inputs — none were eyeballed. `accentText` is the one
+exception: a chosen high-contrast value per theme (dark-on-bright), not derived
+mathematically, taken directly from the design prototype.
+
+**Verified:** full-page screenshots (top to bottom) for all 5 changed themes at desktop
+and mobile — cards, borders, icon-circle glows, and hover-adjacent tokens all correctly
+reflect the new palette with no leftover values from the previous derivation, zero console
+errors. Daytime's 6 computed tokens (`bgPrimary`, `bgSecondary`, `bgElevated`, `accent`,
+`bgCard`, plus the rest) sampled directly and confirmed unchanged. Hindi + font-scale
+reconfirmed composing correctly under two of the changed themes (Sunrise, Sunset)
+simultaneously, zero errors. `tsc --noEmit` and `npm run build` clean throughout.
+
+## Session 15 (Desktop LanguageBar → Navbar Merge) — COMPLETE
+Removed the top LanguageBar entirely on desktop (`lg`, 1024px+) — mobile/tablet keep it
+completely unchanged. Both controls (language switch, font-size) now live inside the
+Navbar itself on desktop, stacked vertically at the row's right end after the CTA button.
+Full architecture, the crowding-fix investigation, and the race-condition fix are in
+`docs/04-process/session-15.md`; summarized here:
+
+**Font-scale race condition, found and fixed before shipping:** this codebase's
+`hidden`/`lg:hidden` responsive-split convention keeps both branches mounted in the DOM —
+only one is CSS-hidden. `LanguageBar.tsx`'s font-scale index was local `useState`, so a
+second independently-mounted control in the Navbar would have raced the first over the
+same `data-font-scale` attribute and drifted out of sync across the breakpoint (the
+language toggle doesn't have this problem — `i18n.language` is already a real shared
+singleton). Fixed by extracting the index into `FontScaleProvider.tsx`, mirroring
+`SiteThemeProvider`'s already-established Context pattern exactly.
+
+**New desktop header height — measured, not estimated:** two stacked ~28px tracks +
+`gap-1.5` + 24px vertical padding = **84px** compact/scrolled, confirmed by direct
+measurement of the real built component (matched the calculation exactly). Replaces the
+old 104px (LanguageBar 32px + Navbar-compact 72px) in every dependent location: Hero.tsx
+gained a third responsive tier (mobile/tablet unchanged, new `lg:pt-[84px]`),
+`globals.css`'s `scroll-padding-top` got a `@media (min-width: 1024px)` override,
+ProductShowcase's already-desktop-only sticky offset swapped straight to 84px, Navbar's
+own `top-8 lg:top-0` / `min-h-[72px] lg:min-h-[84px]`.
+
+**1024–1088px crowding fix — caught a real bug via computed-style verification, not
+visual inspection:** the first attempt narrowed the nav-links gap with two Tailwind
+variants (`lg:gap-3 min-[1089px]:gap-8`), which looked plausible but never actually
+restored the full gap at any width — Tailwind does not numerically sort an arbitrary
+`min-[]:` variant after a named `lg:` one, so `lg:gap-3` always won regardless of
+viewport. Caught by checking the real computed `gap` CSS property across the full width
+range rather than trusting the class names, then replaced with a single explicit
+`@media (min-width: 1024px) and (max-width: 1088px)` rule, which cascades correctly by
+construction and was reverified working exactly as intended.
+
+**Verified:** real measured header heights (84px compact / 107px expanded) match
+calculated values; no wrapping/overflow at 1024/1088/1089/1280px (checked via
+`scrollWidth` vs `innerWidth`, not visual-only); mobile confirmed completely unaffected via
+computed `display` values (LanguageBar still `flex` there, new stack `none`), the reverse
+confirmed on desktop; Hindi + font-scale confirmed working through the *new* desktop
+controls specifically; anchor-link scroll confirmed clearing the shorter header via a real
+`.click()` (a scripted `location.hash` assignment was tried first and gave a misleading
+result); `tsc`/build clean throughout both increments.
+
+## Post-Session 15 bug: dev-only stale i18next singleton on the "Themes" nav link
+After adding the "Themes" nav link, a real hydration mismatch appeared (server rendered
+the raw key `navbar.links.themes`, client rendered `Themes`) — a genuine regression, not
+the already-documented sitewide `useReducedMotion()` mismatch from Session 11. Root cause
+found and reproduced directly, not guessed at:
+
+`en.json`/`hi.json` were structurally correct (confirmed: `themes` sits at the identical
+nesting depth as every other `navbar.links.*` key, present in both locale files, no typo).
+A fresh production build (`npm run build && npm run start`) resolved the key correctly on
+every request, including immediately after a cold restart — ruling out the JSON content
+itself and ruling out a general SSR/i18next-readiness race (which would have affected
+every key, not just this one). The actual cause: a separate, long-running `next dev`
+server (PID 21788) had been running on port 3000 since well before the "Themes" key was
+added, and was never restarted. Curling it directly reproduced the exact bug.
+
+**Mechanism:** `src/lib/i18n/config.ts` initializes i18next once, guarded by
+`if (!i18next.isInitialized)`. The `i18next` package itself is a long-lived singleton from
+`node_modules`, which Next.js dev-mode HMR does not reset — only this project's own source
+files (including `en.json`/`hi.json`) get invalidated and re-imported fresh on each edit.
+So `isInitialized` stays `true` across HMR passes within the same dev-server process,
+meaning the `!isInitialized` branch — the only place resources ever get loaded into the
+live instance — runs exactly once per process, at whatever point the dev server first
+started. Any key added or changed after that point never reaches the live singleton until
+a full restart. Every key that existed before that dev server started (`products`,
+`process`, `caseStudies`, `whyUs`, `contact`) resolved fine; `themes`, added afterward,
+never did. The client side doesn't share this problem — the browser fetches a freshly
+compiled client bundle reflecting current file content on each load, so it always
+resolves correctly, which is exactly why server and client disagreed.
+
+Confirmed **not a production risk**: a real deployment starts a fresh process per release,
+so the `!isInitialized` branch always runs exactly once with current content — verified via
+a clean production build/restart resolving correctly on every request tested.
+
+**Fix — both the immediate bug and the underlying class of bug:**
+1. Killed the stale dev server (PID 21788) and restarted fresh — immediately resolved the
+   reported instance. Verified via direct `curl` of the SSR HTML: `Themes` renders
+   correctly, not the raw key.
+2. Hardened `config.ts` so this can't recur for any future key added mid dev-session:
+   added an `else if (process.env.NODE_ENV === 'development')` branch that calls
+   `i18next.addResourceBundle('en'/'hi', 'translation', en/hi, true, true)` (deep merge,
+   overwrite) on every module re-evaluation once already initialized — syncing the live
+   instance to current file content instead of leaving it frozen. Production takes the
+   original `!isInitialized` fast path unchanged; the new branch is dead-code-eliminated
+   entirely from the production bundle (`process.env.NODE_ENV` is statically `'production'`
+   at build time) — confirmed directly by grepping the built server bundle for the new
+   `addResourceBundle('en'` call site, which is absent, while the original `isInitialized`
+   guard is still present.
+
+**Verified the hardening actually works, not just that a restart fixed the symptom:**
+without restarting the dev server, temporarily changed `"themes": "Themes"` to
+`"themes": "Themes-HMRTEST"` — the live SSR output picked up the new value on the very
+next request with no restart. Reverted the same way, confirmed it tracked back correctly,
+and confirmed `git diff` showed zero residual change afterward. All 5 other nav keys
+re-checked and still resolve correctly (no regression from the new branch). Zero console
+errors in a real browser load against the dev server.
+
+## Deliberate touch-interaction exception: hold-then-drag scroll-block on LightBurst
+**This is a scoped override of, not a reversal of, the Session 13 "touch must never block
+page scroll" rule above.** That rule's reasoning — pointer events unified with mouse,
+verified via a dispatched cancelable event's `defaultPrevented === false`, and no
+`touch-action` override — still holds for the *default* interaction: a quick
+tap-and-swipe over LightBurst scrolls the page exactly as it always has, with
+`preventDefault()` never called. The new behavior only exists in a narrow, deliberately
+gated state: if the same touch is held in place for 250ms *before* it starts moving,
+scroll blocks for the remainder of that touch so the drag drives the scatter effect
+instead — a real UX tradeoff for a decorative element, made consciously rather than by
+accident.
+
+**Design choice worth calling out:** the naive fix (marking the existing always-on
+`pointermove` listener `{ passive: false }`) would have reintroduced a small scroll-
+latency cost on *every* touch interaction, including quick taps that never call
+`preventDefault()` — because a non-passive listener forces the browser to wait for the
+handler before committing to scroll, regardless of whether it ends up calling
+`preventDefault()`. Instead, a second `pointermove` listener is dynamically attached
+`{ passive: false }` only once the 250ms hold-timer fires, and removed again on
+pointerup/cancel/leave. Passive performance is fully preserved for every quick tap and
+all mouse interaction at all times; the non-passive cost exists only during the exact
+window scroll is already intentionally blocked in.
+
+**Architecture:** a `setupHoldGesture()` helper (defined once per effect run, shared by
+both the animated and reduced-motion branches so scroll-blocking works in both) adds
+`pointerdown`/`pointerup`/`pointercancel`/`pointerleave` listeners gated
+`pointerType !== 'touch'` at the very top — mouse never enters this code path, confirmed
+by a dispatched mouse `PointerEvent` held 300ms then moved, `defaultPrevented` stayed
+`false`. `pointerdown` starts a 250ms `setTimeout`; if it fires while still pressed, sets
+`heldRef.current = true`, attaches the dynamic non-passive listener, and (only outside
+reduced motion) seeds `pulseRef` with the current touch position for the visual cue.
+Scatter physics (`updateLines`) is completely untouched — it already reacts to any
+`pointermove` regardless of hold state, which is correct for both the unchanged quick-tap
+case and the new held-drag case.
+
+**Visual cue:** `drawFrame` gained one new optional parameter (a `{x, y, intensity}`
+pulse), computed each frame in the RAF loop from `pulseRef` with a 350ms linear fade, and
+applied as a proportional opacity/width boost to lines within a 160px radius of the touch
+point — purely a rendering-layer effect, no change to `updateLines`'s force/velocity
+math. Reduced motion never sets `pulseRef` in the first place, so nothing new ever
+renders there, rather than needing a separate suppression flag.
+
+**Verified**, all via dispatched cancelable `PointerEvent`s with `pointerType: 'touch'`
+against the real running app (not just source-reading):
+- Quick tap-and-swipe (pointerdown → 3 moves → pointerup, ~60ms total): `defaultPrevented`
+  false on every event — scroll behaves exactly as before.
+- Held-then-drag: sampled `defaultPrevented` at t=50/100/150/200/260/300/350ms after
+  pointerdown — false through 200ms, true from 260ms on, matching the 250ms threshold.
+- Scatter still visually responds during a held-drag (`canvas.toDataURL()` differs from
+  the pre-touch baseline after 8 simulated drag moves past the hold threshold) — the drag
+  genuinely drives the effect, not just blocks scroll with no visible feedback.
+- Pulse cue: real `getImageData()` luminance sampling (not just a screenshot glance)
+  around the touch point shows a consistent, positive brightness delta between ~280ms
+  (pulse near peak) and ~780ms (well past the 350ms decay window) — small in magnitude by
+  design (subtle was the explicit spec), but real and reproducible.
+- Reduced motion: scroll-block still engages at the same 250ms threshold (`defaultPrevented`
+  false→true at the same timing), but `canvas.toDataURL()` is **byte-identical** across
+  the entire hold+pulse window — genuinely zero pulse, zero animation, using the same
+  byte-identity method Session 13 established. The React #418 console error seen here is
+  the same already-documented sitewide `useReducedMotion()` mismatch, not new.
+- `IntersectionObserver` pause/resume and the `ssr: false` dynamic import boundary
+  confirmed unaffected: raw SSR HTML still has no `<canvas>` element, and the canvas is
+  still byte-identical while scrolled off-screen and changes again once back in view.
+- `tsc --noEmit` and `npm run build` clean; zero console errors in every scenario above
+  except the known pre-existing reduced-motion one.
+
+**Known, explicitly flagged gap — real device coverage, not just the general Session 09
+Firefox/Safari note:** all of the above was verified via Chromium (Playwright) with touch
+emulation (`hasTouch: true`) and dispatched synthetic `PointerEvent`s — **not on any real
+iOS/Safari device or real Firefox.** This matters more for this feature specifically than
+for most of what's shipped so far: Safari's touch/scroll gesture recognizer has
+historically had its own heuristics around when it commits to a scroll versus waiting for
+`preventDefault()`, and iOS's passive-listener/`touch-action` interaction isn't guaranteed
+identical to Chromium's. The logic here is deliberately conservative (gated by
+`pointerType === 'touch'`, only ever non-passive during an already-intentional block
+window) specifically to minimize surface area for such a mismatch, but that's a design
+mitigation, not a substitute for real-device confirmation. Real iOS/Safari (and ideally
+real Android, beyond Chromium's touch emulation) testing is a genuine open item before
+treating this as fully verified across the field, not just logged-and-assumed-fine.
+
+## og:image placeholder + full Open Graph/Twitter meta tags
+Added `public/og-image-placeholder.png` (1200x630, composed via a Playwright-rendered
+HTML/CSS banner — Anton wordmark, cyan accent, near-black background, no stock
+photography) and wired the full standard meta tag set through `layout.tsx`'s existing
+metadata export. `openGraph.images` and the JSON-LD `image` field had both been pointing
+at `/og-placeholder.png` — a file that never existed on disk, confirmed 404 — since this
+was written; no Twitter Card tags existed at all. Filename and an inline `TODO` comment
+both flag this as a placeholder pending real hero photography, so it doesn't quietly
+become permanent. Verified with real evidence: fetched the built page's actual meta tags
+(not just checked the source) and confirmed every `og:`/`twitter:` tag renders correctly,
+then fetched the image URL directly and confirmed it resolves (200, `image/png`) and is
+genuinely 1200x630 by measuring the served bytes, not the source file.
+
+## Remaining hardcoded i18n strings — full audit and fixes
+Audited every component file (not just visible body text — aria-labels, alt text,
+default props, DOM selectors) for hardcoded English bypassing `t()`. Found and fixed:
+font-scale control aria-labels (new `languageBar` namespace, was duplicated verbatim in
+both `LanguageBar.tsx` and `NavbarLanguageControls.tsx`), case-study `clientName`/
+`testimonialAuthor` (were rendered directly from `case-studies.ts`, never through `t()`,
+unlike the already-translated `painPoint`/`solution`/`result`/`testimonial` on the same
+objects), the contact address (`contact.ts`, rendered directly in `Footer.tsx`), and the
+brand wordmark (hardcoded independently in both `Navbar.tsx` and `Footer.tsx` with
+inconsistent casing — unified under `common.brandName`).
+
+**Confirmed exempt, per review:** `Partnerships.tsx`'s client-name list and the case
+studies' institution/person names are proper nouns, left untranslated by design.
+
+**Related bug found and fixed while auditing:** `ImageModal.tsx`'s focus-trap queried
+`button[aria-label="Close image"]` — a hardcoded English literal — even though the actual
+aria-label is properly translated via `t('imageModal.closeAriaLabel')`. This silently
+never matched in Hindi mode, falling back to focusing the modal container instead of the
+close button. Fixed to query by attribute presence instead of literal text.
+
+**Content correction:** the language switcher now shows "हिन्दी" (native name) instead of
+the English word "Hindi", matching the standard convention that each language option
+displays in its own script regardless of the current UI language — "English" already
+followed this, "Hindi" didn't.
+
+**Cleanup, not a functional bug:** `products.ts`, `case-studies.ts`, and `b2b.ts` each had
+raw content fields (`title`/`tagline`/`features`, `painPoint`/`solution`/`result`/
+`testimonial`, `headline`/`body`/`ctaText`) fully shadowed by proper `t()` lookups
+elsewhere — confusing dead duplicates, removed. `Product.useCases` (a dead English array
+used only as a truthy/falsy gate) became a proper `hasUseCases` boolean, preserving
+identical behavior without the dead content.
+
+**Hindi translations needing Kewal's review before being considered final** (drafted by
+me, per this project's standing translation-quality convention):
+- `languageBar.decreaseAriaLabel` / `.resetAriaLabel` / `.increaseAriaLabel`
+- `caseStudies.studies.chouksey.clientName` / `.testimonialAuthor`
+- `caseStudies.studies.sanjeevani.clientName` / `.testimonialAuthor`
+- `contact.address`
+
+`common.brandName`'s Hindi value ("Paras Enterprises", unchanged) is **not** a draft — it
+matches the existing precedent already live in this same file's case-study testimonial
+text, which already keeps the brand name in Latin script inside Hindi copy.
+
+**Verified:** second-pass audit (`aria-label="[^{]`, `study.clientName`,
+`contactInfo.address`, literal brand-name greps) confirms zero hardcoded-string patterns
+remain; `tsc`/build clean; both locales checked live — not just source-read — by
+navigating the real running app, scrolling to the actual rendered DOM nodes, and reading
+real `textContent`/`innerHTML` for every fixed string; zero raw i18next key fallbacks
+found in either language's full page HTML; zero console errors in either locale.

@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { siteConfig } from '@/lib/content/site-config';
 import { useScrollPosition } from '@/lib/hooks/useScrollPosition';
 import { cn } from '@/lib/utils';
+import { NavbarLanguageControls } from './NavbarLanguageControls';
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -58,17 +59,17 @@ export default function Navbar() {
   return (
     <>
     <motion.header
-      className="fixed top-8 left-0 right-0 z-50 border-b border-border/0 min-h-[72px]"
+      className="fixed top-8 lg:top-0 left-0 right-0 z-50 border-b border-border/0 min-h-[72px] lg:min-h-[84px]"
       {...navbarVariants}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
         <a href="#" className="text-text-primary font-display text-2xl tracking-tight flex-shrink">
-          Paras Enterprises
+          {t('common.brandName')}
         </a>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8 navbar-links-gap-fix">
           {siteConfig.navLinks.map((link) => (
             <a
               key={link.href}
@@ -80,7 +81,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Phone + CTA (Desktop) */}
+        {/* Phone + CTA + Language/Font controls (Desktop) */}
         <div className="hidden lg:flex items-center gap-4">
           <a
             href={`tel:${siteConfig.phone}`}
@@ -95,6 +96,7 @@ export default function Navbar() {
           >
             {t('common.ctaSiteSurvey')}
           </a>
+          <NavbarLanguageControls />
         </div>
 
         {/* Mobile: Phone + Hamburger */}

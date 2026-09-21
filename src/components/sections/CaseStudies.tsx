@@ -27,7 +27,7 @@ export const CaseStudies = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
           {caseStudies.map((study, index) => (
             <motion.div
-              key={study.clientName}
+              key={study.slug}
               initial={shouldReduceMotion ? { opacity: 0, y: 0 } : { opacity: 0, y: 20 }}
               whileInView={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-100px' }}

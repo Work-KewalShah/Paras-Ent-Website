@@ -24,7 +24,7 @@ export const CaseStudyCard = ({ study, className }: CaseStudyCardProps) => {
         <div className="h-full w-full overflow-hidden">
           <Image
             src={`/images/${study.image}`}
-            alt={study.clientName}
+            alt={t(`caseStudies.studies.${study.slug}.clientName`)}
             fill
             className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -34,8 +34,8 @@ export const CaseStudyCard = ({ study, className }: CaseStudyCardProps) => {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <h3 className="font-display text-h2 uppercase tracking-tight text-[var(--color-accent,#00E599)] mb-3">
-          {study.clientName}
+        <h3 className="font-display text-h2 uppercase tracking-tight text-[var(--color-accent,#2DD4E8)] mb-3">
+          {t(`caseStudies.studies.${study.slug}.clientName`)}
         </h3>
 
         <div className="space-y-3 text-text-secondary text-small leading-relaxed">
@@ -55,7 +55,9 @@ export const CaseStudyCard = ({ study, className }: CaseStudyCardProps) => {
 
         <blockquote className="mt-4 pt-4 border-t border-[var(--color-border-subtle,#1a1a1a)] text-text-primary text-small italic leading-relaxed">
           “{t(`caseStudies.studies.${study.slug}.testimonial`)}”
-          <cite className="block mt-2 not-italic text-text-muted text-xs">— {study.testimonialAuthor}</cite>
+          <cite className="block mt-2 not-italic text-text-muted text-xs">
+            — {t(`caseStudies.studies.${study.slug}.testimonialAuthor`)}
+          </cite>
         </blockquote>
       </div>
     </Card>

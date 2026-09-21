@@ -28,7 +28,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         }
         className={cn(
           'relative rounded-lg border border-[var(--color-border,#2A2A2A)] bg-[var(--color-bg-secondary,#141414)] p-6 shadow-[var(--shadow-card,0_4px_24px_rgba(0,0,0,0.4))] transition-colors duration-250',
-          hoverEffect && 'hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))] hover:shadow-[var(--glow-accent,0_0_24px_rgba(45,212,232,0.25))]',
+          hoverEffect && 'hover:border-[var(--color-border-accent,rgba(45,212,232,0.4))] hover:shadow-[var(--shadow-glow-accent,0_0_24px_rgba(45,212,232,0.25))]',
           className
         )}
         {...props}

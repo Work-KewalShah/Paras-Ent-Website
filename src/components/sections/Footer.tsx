@@ -43,7 +43,7 @@ export default function Footer() {
           {/* Logo + Tagline */}
           <div className="flex flex-col space-y-2">
             <p className="font-display text-text-primary uppercase tracking-tight">
-              PARAS ENTERPRISES
+              {t('common.brandName')}
             </p>
             <p className="text-body leading-relaxed">
               {t('common.brandTagline')}
@@ -74,8 +74,28 @@ export default function Footer() {
               {t('footer.contactUsHeading')}
             </h3>
             <p className="text-text-secondary">
-              {contactInfo.address}
+              {t('contact.address')}
             </p>
+            <a
+              href={contactInfo.googleBusinessLink}
+              target="_blank"
+              rel="noopener"
+              className="flex items-center space-x-2 mt-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 text-accent flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M15 3h6v6M10.5 13.5L21 3" />
+              </svg>
+              <span>{t('footer.getDirectionsButton')}</span>
+            </a>
             <div className="mt-4 space-y-3">
               {/* Inquiry Numbers */}
               <div className="space-y-2">
