@@ -739,3 +739,66 @@ window) specifically to minimize surface area for such a mismatch, but that's a 
 mitigation, not a substitute for real-device confirmation. Real iOS/Safari (and ideally
 real Android, beyond Chromium's touch emulation) testing is a genuine open item before
 treating this as fully verified across the field, not just logged-and-assumed-fine.
+
+## og:image placeholder + full Open Graph/Twitter meta tags
+Added `public/og-image-placeholder.png` (1200x630, composed via a Playwright-rendered
+HTML/CSS banner — Anton wordmark, cyan accent, near-black background, no stock
+photography) and wired the full standard meta tag set through `layout.tsx`'s existing
+metadata export. `openGraph.images` and the JSON-LD `image` field had both been pointing
+at `/og-placeholder.png` — a file that never existed on disk, confirmed 404 — since this
+was written; no Twitter Card tags existed at all. Filename and an inline `TODO` comment
+both flag this as a placeholder pending real hero photography, so it doesn't quietly
+become permanent. Verified with real evidence: fetched the built page's actual meta tags
+(not just checked the source) and confirmed every `og:`/`twitter:` tag renders correctly,
+then fetched the image URL directly and confirmed it resolves (200, `image/png`) and is
+genuinely 1200x630 by measuring the served bytes, not the source file.
+
+## Remaining hardcoded i18n strings — full audit and fixes
+Audited every component file (not just visible body text — aria-labels, alt text,
+default props, DOM selectors) for hardcoded English bypassing `t()`. Found and fixed:
+font-scale control aria-labels (new `languageBar` namespace, was duplicated verbatim in
+both `LanguageBar.tsx` and `NavbarLanguageControls.tsx`), case-study `clientName`/
+`testimonialAuthor` (were rendered directly from `case-studies.ts`, never through `t()`,
+unlike the already-translated `painPoint`/`solution`/`result`/`testimonial` on the same
+objects), the contact address (`contact.ts`, rendered directly in `Footer.tsx`), and the
+brand wordmark (hardcoded independently in both `Navbar.tsx` and `Footer.tsx` with
+inconsistent casing — unified under `common.brandName`).
+
+**Confirmed exempt, per review:** `Partnerships.tsx`'s client-name list and the case
+studies' institution/person names are proper nouns, left untranslated by design.
+
+**Related bug found and fixed while auditing:** `ImageModal.tsx`'s focus-trap queried
+`button[aria-label="Close image"]` — a hardcoded English literal — even though the actual
+aria-label is properly translated via `t('imageModal.closeAriaLabel')`. This silently
+never matched in Hindi mode, falling back to focusing the modal container instead of the
+close button. Fixed to query by attribute presence instead of literal text.
+
+**Content correction:** the language switcher now shows "हिन्दी" (native name) instead of
+the English word "Hindi", matching the standard convention that each language option
+displays in its own script regardless of the current UI language — "English" already
+followed this, "Hindi" didn't.
+
+**Cleanup, not a functional bug:** `products.ts`, `case-studies.ts`, and `b2b.ts` each had
+raw content fields (`title`/`tagline`/`features`, `painPoint`/`solution`/`result`/
+`testimonial`, `headline`/`body`/`ctaText`) fully shadowed by proper `t()` lookups
+elsewhere — confusing dead duplicates, removed. `Product.useCases` (a dead English array
+used only as a truthy/falsy gate) became a proper `hasUseCases` boolean, preserving
+identical behavior without the dead content.
+
+**Hindi translations needing Kewal's review before being considered final** (drafted by
+me, per this project's standing translation-quality convention):
+- `languageBar.decreaseAriaLabel` / `.resetAriaLabel` / `.increaseAriaLabel`
+- `caseStudies.studies.chouksey.clientName` / `.testimonialAuthor`
+- `caseStudies.studies.sanjeevani.clientName` / `.testimonialAuthor`
+- `contact.address`
+
+`common.brandName`'s Hindi value ("Paras Enterprises", unchanged) is **not** a draft — it
+matches the existing precedent already live in this same file's case-study testimonial
+text, which already keeps the brand name in Latin script inside Hindi copy.
+
+**Verified:** second-pass audit (`aria-label="[^{]`, `study.clientName`,
+`contactInfo.address`, literal brand-name greps) confirms zero hardcoded-string patterns
+remain; `tsc`/build clean; both locales checked live — not just source-read — by
+navigating the real running app, scrolling to the actual rendered DOM nodes, and reading
+real `textContent`/`innerHTML` for every fixed string; zero raw i18next key fallbacks
+found in either language's full page HTML; zero console errors in either locale.
