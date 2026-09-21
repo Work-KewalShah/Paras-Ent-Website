@@ -208,3 +208,10 @@ future increment.
 **Known pre-existing, not introduced here:** same sitewide `useReducedMotion()` hydration
 mismatch as Sessions 11-12, now also present in this component since it uses the same
 hook — confirmed same React error #418, not a new failure mode.
+
+## Post-Session 13 note: page section reorder
+Section reorder (B2B/StatsRow/LightBurst moved to immediately after Hero) introduced one
+same-token background pairing (ServiceApproach → CaseStudies, both bg-secondary) since
+the moved block's wildcard LightBurst gradient previously broke up that stretch.
+Confirmed via screenshot this reads as a continuous dark section, not a visible
+seam/mistake — accepted as-is, no fix needed.
