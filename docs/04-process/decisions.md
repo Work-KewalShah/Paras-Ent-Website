@@ -865,3 +865,36 @@ pause/resume reconfirmed via the same byte-identity method established in Sessio
 unaffected by the new ambient layer. `tsc`/build clean throughout; zero console errors in
 every scenario tested except the already-documented pre-existing reduced-motion
 hydration mismatch.
+
+## Ambient-layer follow-up: bird color, wing-flap, star twinkle amplitude
+Three fixes from a real screenshot review of the ambient layer above, each confirmed with
+measured/rendered evidence rather than trusting the config values alone:
+
+**Bird color** changed from `#14253D` (read as flat black) to `#4A5A72` (muted
+slate-blue-gray) — confirmed in context by rendering an actual bird against the real
+Daytime gradient and cropping/zooming the result before locking it in, not just picking a
+hex value theoretically.
+
+**Star twinkle amplitude was measurably too wide**, confirmed by sampling real rendered
+pixel brightness (not the configured opacity values) every 500ms for several seconds:
+Pre-dawn swung 150→246 (1.64x) and Night 288→646 (2.24x) — a genuine pulse, not a
+shimmer. Narrowed both ranges (Pre-dawn `0.1–0.35` → `0.16–0.24`; Night `0.3–0.85` →
+`0.5–0.75`, both landing at a consistent ~1.5x ratio while keeping Night meaningfully
+brighter overall) and re-measured the same way post-fix: Pre-dawn now swings 187→224
+(1.20x), Night 445→592 (1.33x) — both substantially gentler, confirmed by the same
+pixel-sampling method, not just smaller numbers on paper. Oscillation rate (~10.5s per
+cycle) was untouched, since the amplitude was the actual problem.
+
+**Wing-flap animation** added by modulating the same control-point offset already used to
+draw the static V-shape — `sin(phase + timestamp * flapRate)` oscillates how far the
+control point dips below the wingtips (shallow = wings up, deep = wings down), each bird
+given a randomized phase offset so the three don't flap in unison. 800ms per flap cycle.
+Horizontal drift speed is completely unaffected — confirmed by cropping the same fixed
+canvas region across a sequence of 140ms-apart frames and visually confirming the wing
+angle genuinely changes (shallow dip → deeper dip) frame to frame, not just that the
+formula exists in code.
+
+**Verified:** all 6 themes reconfirmed rendering correctly with zero console errors;
+reduced motion reconfirmed via `canvas.toDataURL()` byte-identity for both Daytime
+(birds still fully skipped) and Night (stars still static) — the flap/twinkle changes
+don't touch the reduced-motion code paths at all. `tsc`/build clean.

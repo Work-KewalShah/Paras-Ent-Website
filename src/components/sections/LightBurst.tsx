@@ -213,6 +213,13 @@ const BIRD_MIN_SPEED = 0.4;
 const BIRD_MAX_SPEED = 0.6;
 const BIRD_MIN_WAIT_MS = 3000;
 const BIRD_WAIT_RANGE_MS = 6000;
+// Wing-flap: modulates the same control-point offset already used to draw
+// the static V-shape, so the "angle" of the wings oscillates over time —
+// horizontal drift speed above is completely unaffected.
+const BIRD_FLAP_PERIOD_MS = 800;
+const BIRD_FLAP_RATE = (2 * Math.PI) / BIRD_FLAP_PERIOD_MS;
+const BIRD_FLAP_MIN = 0.15;
+const BIRD_FLAP_MAX = 0.5;
 
 interface AmbientParticle {
   x: number;
@@ -241,7 +248,7 @@ function generateAmbientParticles(
           y: 30 + Math.random() * (cssHeight * 0.35),
           vx: dir * (BIRD_MIN_SPEED + Math.random() * (BIRD_MAX_SPEED - BIRD_MIN_SPEED)),
           vy: 0,
-          phase: 0,
+          phase: Math.random() * Math.PI * 2, // per-bird flap offset, so they don't flap in unison
           size: 7 + Math.random() * 5,
           life: 0,
           active: Math.random() < 0.5,
@@ -398,12 +405,18 @@ function drawAmbientParticles(
         ctx.lineWidth = 1.4;
         ctx.lineCap = 'round';
         const dir = p.vx >= 0 ? 1 : -1;
+        // Wing-flap: oscillates how far the control point dips below the
+        // wingtips (shallow = wings up, deep = wings down), independent of
+        // the horizontal drift speed above.
+        const flap =
+          BIRD_FLAP_MIN +
+          (BIRD_FLAP_MAX - BIRD_FLAP_MIN) * (0.5 + 0.5 * Math.sin(p.phase + timestamp! * BIRD_FLAP_RATE));
         ctx.beginPath();
         // V-shaped silhouette: wingtips higher (smaller y), the shared
         // control point lower (larger y) so the stroke dips down in the
         // middle — the classic flying-bird doodle, not a bowed-up arc.
         ctx.moveTo(p.x - p.size * dir, p.y - p.size * 0.35);
-        ctx.quadraticCurveTo(p.x, p.y + p.size * 0.4, p.x + p.size * dir, p.y - p.size * 0.35);
+        ctx.quadraticCurveTo(p.x, p.y + p.size * flap, p.x + p.size * dir, p.y - p.size * 0.35);
         ctx.stroke();
         break;
       }

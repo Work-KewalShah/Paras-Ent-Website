@@ -27,7 +27,7 @@ export interface LightBurstTheme {
 export const lightBurstThemes: LightBurstTheme[] = [
   {
     key: 'preDawn', icon: 'cloud-moon', bgTop: '#1A1035', bgBottom: '#050510', line: '#9D7FEA', dot: '#C9B8FF',
-    ambient: { type: 'stars', count: 26, color: '#E8E0FF', minOpacity: 0.1, maxOpacity: 0.35 },
+    ambient: { type: 'stars', count: 26, color: '#E8E0FF', minOpacity: 0.16, maxOpacity: 0.24 },
   },
   {
     key: 'sunrise', icon: 'sunrise', bgTop: '#FF6B6B', bgBottom: '#FFD93D', line: '#FFF3B0', dot: '#FFFFFF',
@@ -35,7 +35,7 @@ export const lightBurstThemes: LightBurstTheme[] = [
   },
   {
     key: 'daytime', icon: 'sun', bgTop: '#85B7EB', bgBottom: '#0C447C', line: '#E6F1FB', dot: '#FFFFFF',
-    ambient: { type: 'birds', count: 3, color: '#14253D' },
+    ambient: { type: 'birds', count: 3, color: '#4A5A72' },
   },
   {
     key: 'dusk', icon: 'sunset-2', bgTop: '#C74B9E', bgBottom: '#2E1A47', line: '#F7B7E0', dot: '#FFFFFF',
@@ -47,7 +47,7 @@ export const lightBurstThemes: LightBurstTheme[] = [
   },
   {
     key: 'night', icon: 'moon', bgTop: '#0B1E3D', bgBottom: '#050414', line: '#4FD8FF', dot: '#B8F4FF',
-    ambient: { type: 'stars', count: 55, color: '#FFFFFF', minOpacity: 0.3, maxOpacity: 0.85 },
+    ambient: { type: 'stars', count: 55, color: '#FFFFFF', minOpacity: 0.5, maxOpacity: 0.75 },
   },
 ];
 
