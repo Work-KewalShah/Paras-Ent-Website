@@ -404,19 +404,25 @@ function drawAmbientParticles(
         ctx.strokeStyle = config.color;
         ctx.lineWidth = 1.4;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         const dir = p.vx >= 0 ? 1 : -1;
-        // Wing-flap: oscillates how far the control point dips below the
+        // Wing-flap: oscillates how far the center vertex drops below the
         // wingtips (shallow = wings up, deep = wings down), independent of
         // the horizontal drift speed above.
         const flap =
           BIRD_FLAP_MIN +
           (BIRD_FLAP_MAX - BIRD_FLAP_MIN) * (0.5 + 0.5 * Math.sin(p.phase + timestamp! * BIRD_FLAP_RATE));
+        // V-shaped silhouette: two straight strokes from a shared center
+        // vertex up to each wingtip. A single quadraticCurveTo across both
+        // wings (the previous approach) is mathematically a smooth curve
+        // with no corner anywhere along it — tuning the control point only
+        // changes how deep/rounded that curve is, never produces an actual
+        // angular point. Two lineTo segments meeting at one vertex do —
+        // confirmed by zooming an actual rendered frame, not just in theory.
         ctx.beginPath();
-        // V-shaped silhouette: wingtips higher (smaller y), the shared
-        // control point lower (larger y) so the stroke dips down in the
-        // middle — the classic flying-bird doodle, not a bowed-up arc.
         ctx.moveTo(p.x - p.size * dir, p.y - p.size * 0.35);
-        ctx.quadraticCurveTo(p.x, p.y + p.size * flap, p.x + p.size * dir, p.y - p.size * 0.35);
+        ctx.lineTo(p.x, p.y + p.size * flap);
+        ctx.lineTo(p.x + p.size * dir, p.y - p.size * 0.35);
         ctx.stroke();
         break;
       }

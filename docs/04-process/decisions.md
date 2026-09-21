@@ -898,3 +898,36 @@ formula exists in code.
 reduced motion reconfirmed via `canvas.toDataURL()` byte-identity for both Daytime
 (birds still fully skipped) and Night (stars still static) — the flap/twinkle changes
 don't touch the reduced-motion code paths at all. `tsc`/build clean.
+
+## Bird shape: real root cause, not a re-application of the same failed fix
+The "V-shaped silhouette" fix above was reported fixed and reconfirmed, and still wasn't
+— a second round of direct visual inspection (10x nearest-neighbor zoom crops of actual
+rendered frames, not a glance at a normal screenshot) showed a smooth, continuous,
+rounded curve with no corner anywhere along it, i.e. a "U"/smile shape. Root cause: the
+birds were drawn with a single `quadraticCurveTo` spanning both wings. A quadratic Bézier
+is mathematically one smooth curve — tuning the control point's position can only change
+how deep or shallow that curve dips, it can never introduce an actual angular vertex. The
+earlier fix had flipped which direction the smooth curve bowed (up vs. down), which is
+why it still read as an arc regardless of "control point tuning" — the control point was
+never the actual problem.
+
+**Real fix:** replaced the single curve with two straight `lineTo` segments from a shared
+center vertex up to each wingtip (`moveTo(leftTip) → lineTo(center) → lineTo(rightTip)`),
+with `lineJoin: 'round'` to soften the corner slightly at the pixel level without losing
+the angular point. The wing-flap animation maps onto this the same way as before —
+modulating how far the center vertex drops relative to the wingtips.
+
+**Bird color** changed again, `#4A5A72` → `#F0F0F5` (near-white) — a judgment call by
+Kewal after seeing the muted slate-blue-gray in practice, not a reversal of the earlier
+contrast reasoning; confirmed the white still reads as a soft silhouette rather than a
+harsh cutout, the same way the previous color was confirmed.
+
+**Verified — both fixes tested in context before being proposed, not asserted from
+theory**: temporarily applied both changes, rebuilt, and captured fresh zoomed crops of
+actual rendered frames before writing up a plan — the shape crop showed a genuine angular
+"V" with a real corner, the color crop showed a visible, soft near-white silhouette
+against the Daytime gradient in both a tight zoom and full-canvas context. Only after
+that evidence was in hand were the changes proposed, then reverted pending approval, then
+re-applied and re-verified identically once approved. Final re-verification: all 6 themes
+render with zero console errors, reduced motion unaffected (same byte-identity checks as
+above), `tsc`/build clean.

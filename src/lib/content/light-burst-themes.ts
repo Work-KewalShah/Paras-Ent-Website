@@ -35,7 +35,7 @@ export const lightBurstThemes: LightBurstTheme[] = [
   },
   {
     key: 'daytime', icon: 'sun', bgTop: '#85B7EB', bgBottom: '#0C447C', line: '#E6F1FB', dot: '#FFFFFF',
-    ambient: { type: 'birds', count: 3, color: '#4A5A72' },
+    ambient: { type: 'birds', count: 3, color: '#F0F0F5' },
   },
   {
     key: 'dusk', icon: 'sunset-2', bgTop: '#C74B9E', bgBottom: '#2E1A47', line: '#F7B7E0', dot: '#FFFFFF',
