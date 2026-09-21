@@ -392,3 +392,15 @@
   scatter behavior confirmed via a dispatched `PointerEvent` with `pointerType: 'touch'`
   on a mobile viewport; canvas resizes correctly (buffer width recalculated as
   `clientWidth * dpr`) after a real viewport resize, no stretching/distortion.
+
+## Post-Session 13 note: LightBurst theme palette redesign
+LightBurst theme palette redesigned for 5 of 6 themes (Pre-dawn, Sunrise, Dusk, Sunset,
+Night) — original palette had too much overlap (Sunrise/Sunset shared near-identical gold
+line color, Pre-dawn/Dusk/Night all leaned on similar dark purple-blue). New palette gives
+each theme a distinct hue family and brightness range. Daytime kept unchanged as the
+default. Iterated and approved via visual prototyping before implementation.
+
+Verified via direct canvas pixel sampling (`ctx.getImageData()` at the gradient's top and
+bottom, not just visual inspection) that all 6 themes render the exact specified hex
+values, and that Daytime is pixel-identical to its pre-existing values. Confirmed no
+leftover old hex values anywhere in the codebase via grep.
