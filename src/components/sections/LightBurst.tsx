@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
+import { useSiteTheme } from '@/components/providers/SiteThemeProvider';
 import {
   lightBurstThemes,
   DEFAULT_THEME_INDEX,
@@ -283,7 +284,7 @@ function drawFrame(
 export const LightBurst = () => {
   const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
-  const [activeThemeIndex, setActiveThemeIndex] = useState(DEFAULT_THEME_INDEX);
+  const { themeIndex: activeThemeIndex, setThemeIndex: setActiveThemeIndex } = useSiteTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const linesRef = useRef<LineState[] | null>(null);
