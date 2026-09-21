@@ -516,3 +516,46 @@ two different non-Daytime themes (Sunrise, Night) simultaneously, all three
 Accessibility 97 / Best Practices 100 / SEO 100 / CLS 0 — no regression; small differences
 from prior sessions' numbers are consistent with the already-documented
 environment/Lighthouse-version variance, not something newly introduced here.
+
+## Standing method: deriving bgSecondary/bgElevated from bgPrimary
+Formalized during the Session 14 palette redesign below, this is now the established
+method for this project whenever a theme's `bgPrimary` changes or a new theme is added —
+alongside the already-documented `accentHover`/`accentMuted` (HSL-delta from Daytime),
+`borderAccent` (accent at 40% alpha), `bgCard`/`borderCard`/`borderSubtle` (RGB-offset from
+`bgElevated`), and `bgAccent`/`shadowGlowAccent` (alpha-suffixed accent) methods.
+
+`bgSecondary` and `bgElevated` were never actually derived by formula when Session 14 first
+shipped — they were given directly as literal table values alongside `bgPrimary`. Measuring
+Daytime's own `bgPrimary → bgSecondary → bgElevated` progression in HSL space revealed a
+clean, consistent pattern: **same hue and saturation as `bgPrimary`, lightness stepped up by
+two fixed amounts**. In Daytime: L 3.92% → 7.84% → 10.98%, i.e. ΔL₁ = +3.92pts (primary→
+secondary) and ΔL₂ = +3.14pts (secondary→elevated), with H/S unchanged (both 0%, since
+Daytime is grayscale).
+
+**Formula:** for any theme, convert `bgPrimary` to HSL, then:
+- `bgSecondary` = same H, same S, L + 3.92pts
+- `bgElevated` = same H, same S, L + 3.92pts + 3.14pts (i.e. `bgSecondary`'s L + 3.14pts)
+
+convert back to hex. These two ΔL constants are fixed — always measured from Daytime,
+never re-measured per-theme — exactly the same philosophy as the `accentHover`/
+`accentMuted` deltas.
+
+## Post-Session 14 note: site-wide palette redesign (5 of 6 themes)
+Replaced the color values for Pre-dawn, Sunrise, Dusk, Sunset, and Night with a new
+finalized palette from design prototyping — Daytime left completely untouched. Only the 6
+core values per theme were newly specified (`bgPrimary`, `textPrimary`, `textSecondary`,
+`accent`, `accentText`, `border`); every other token (`bgSecondary`, `bgElevated`,
+`accentHover`, `accentMuted`, `borderAccent`, `bgCard`, `borderCard`, `borderSubtle`,
+`bgAccent`, `bgAccentStrong`, `shadowGlowAccent`, `shadowGlowAccentSoft`) was re-derived
+using the exact methods above and already documented earlier in this file, with the new
+accent/background values as inputs — none were eyeballed. `accentText` is the one
+exception: a chosen high-contrast value per theme (dark-on-bright), not derived
+mathematically, taken directly from the design prototype.
+
+**Verified:** full-page screenshots (top to bottom) for all 5 changed themes at desktop
+and mobile — cards, borders, icon-circle glows, and hover-adjacent tokens all correctly
+reflect the new palette with no leftover values from the previous derivation, zero console
+errors. Daytime's 6 computed tokens (`bgPrimary`, `bgSecondary`, `bgElevated`, `accent`,
+`bgCard`, plus the rest) sampled directly and confirmed unchanged. Hindi + font-scale
+reconfirmed composing correctly under two of the changed themes (Sunrise, Sunset)
+simultaneously, zero errors. `tsc --noEmit` and `npm run build` clean throughout.

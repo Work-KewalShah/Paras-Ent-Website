@@ -139,113 +139,113 @@
 }
 
 :root[data-site-theme="preDawn"] {
-  --color-bg-primary: #0D0A1F;
-  --color-bg-secondary: #161029;
-  --color-bg-elevated: #201936;
-  --color-text-primary: #F1EEFB;
-  --color-text-secondary: #B3A8DE;
-  --color-accent: #9D7FEA;
-  --color-accent-hover: #C1ADF3;
-  --color-accent-muted: #5733B5;
-  --color-border: #2E2450;
-  --color-border-accent: rgba(157, 127, 234, 0.4);
+  --color-bg-primary: #0A0716;
+  --color-bg-secondary: #110C25;
+  --color-bg-elevated: #161031;
+  --color-text-primary: #F3F0FC;
+  --color-text-secondary: #A99BDE;
+  --color-accent: #A78BFA;
+  --color-accent-hover: #CFBFFD;
+  --color-accent-muted: #5323E1;
+  --color-border: #2A2050;
+  --color-border-accent: rgba(167, 139, 250, 0.4);
 
-  --color-bg-card: #161029;
-  --color-border-card: #261F3C;
-  --color-border-subtle: #1E1734;
-  --color-bg-accent: #9D7FEA10;
-  --color-bg-accent-strong: #9D7FEA20;
+  --color-bg-card: #110C25;
+  --color-border-card: #1C1637;
+  --color-border-subtle: #140E2F;
+  --color-bg-accent: #A78BFA10;
+  --color-bg-accent-strong: #A78BFA20;
 
-  --shadow-glow-accent: 0 0 24px rgba(157, 127, 234, 0.25);
-  --shadow-glow-accent-soft: 0 0 24px rgba(157, 127, 234, 0.1);
+  --shadow-glow-accent: 0 0 24px rgba(167, 139, 250, 0.25);
+  --shadow-glow-accent-soft: 0 0 24px rgba(167, 139, 250, 0.1);
 }
 
 :root[data-site-theme="sunrise"] {
-  --color-bg-primary: #2B120A;
-  --color-bg-secondary: #3A1810;
-  --color-bg-elevated: #4A2014;
-  --color-text-primary: #FFF6E9;
-  --color-text-secondary: #E8B98F;
-  --color-accent: #FF9142;
-  --color-accent-hover: #FFB179;
-  --color-accent-muted: #B1530F;
-  --color-border: #5A2C18;
-  --color-border-accent: rgba(255, 145, 66, 0.4);
+  --color-bg-primary: #0F0A02;
+  --color-bg-secondary: #211604;
+  --color-bg-elevated: #2F1F06;
+  --color-text-primary: #FFF8ED;
+  --color-text-secondary: #C9A876;
+  --color-accent: #FFB627;
+  --color-accent-hover: #FFC95E;
+  --color-accent-muted: #98690D;
+  --color-border: #3A2A10;
+  --color-border-accent: rgba(255, 182, 39, 0.4);
 
-  --color-bg-card: #3A1810;
-  --color-border-card: #50261A;
-  --color-border-subtle: #481E12;
-  --color-bg-accent: #FF914210;
-  --color-bg-accent-strong: #FF914220;
+  --color-bg-card: #211604;
+  --color-border-card: #35250C;
+  --color-border-subtle: #2D1D04;
+  --color-bg-accent: #FFB62710;
+  --color-bg-accent-strong: #FFB62720;
 
-  --shadow-glow-accent: 0 0 24px rgba(255, 145, 66, 0.25);
-  --shadow-glow-accent-soft: 0 0 24px rgba(255, 145, 66, 0.1);
+  --shadow-glow-accent: 0 0 24px rgba(255, 182, 39, 0.25);
+  --shadow-glow-accent-soft: 0 0 24px rgba(255, 182, 39, 0.1);
 }
 
 :root[data-site-theme="dusk"] {
-  --color-bg-primary: #1F0F1E;
-  --color-bg-secondary: #2C1730;
-  --color-bg-elevated: #3A1F40;
-  --color-text-primary: #FCEEF7;
-  --color-text-secondary: #D9A6C9;
-  --color-accent: #E667B8;
-  --color-accent-hover: #F094CF;
-  --color-accent-muted: #9F2D76;
-  --color-border: #4A2650;
-  --color-border-accent: rgba(230, 103, 184, 0.4);
+  --color-bg-primary: #190D1B;
+  --color-bg-secondary: #251329;
+  --color-bg-elevated: #2F1933;
+  --color-text-primary: #FBEAF5;
+  --color-text-secondary: #D398C2;
+  --color-accent: #F072BE;
+  --color-accent-hover: #F7A2D5;
+  --color-accent-muted: #BA2780;
+  --color-border: #3D1E3F;
+  --color-border-accent: rgba(240, 114, 190, 0.4);
 
-  --color-bg-card: #2C1730;
-  --color-border-card: #402546;
-  --color-border-subtle: #381D3E;
-  --color-bg-accent: #E667B810;
-  --color-bg-accent-strong: #E667B820;
+  --color-bg-card: #251329;
+  --color-border-card: #351F39;
+  --color-border-subtle: #2D1731;
+  --color-bg-accent: #F072BE10;
+  --color-bg-accent-strong: #F072BE20;
 
-  --shadow-glow-accent: 0 0 24px rgba(230, 103, 184, 0.25);
-  --shadow-glow-accent-soft: 0 0 24px rgba(230, 103, 184, 0.1);
+  --shadow-glow-accent: 0 0 24px rgba(240, 114, 190, 0.25);
+  --shadow-glow-accent-soft: 0 0 24px rgba(240, 114, 190, 0.1);
 }
 
 :root[data-site-theme="sunset"] {
-  --color-bg-primary: #210A1C;
-  --color-bg-secondary: #331128;
-  --color-bg-elevated: #451936;
-  --color-text-primary: #FFEFE3;
-  --color-text-secondary: #E8A98C;
-  --color-accent: #FF7A4D;
-  --color-accent-hover: #FFA384;
-  --color-accent-muted: #BB3B10;
-  --color-border: #4D1E3A;
-  --color-border-accent: rgba(255, 122, 77, 0.4);
+  --color-bg-primary: #0F0505;
+  --color-bg-secondary: #1E0A0A;
+  --color-bg-elevated: #2A0E0E;
+  --color-text-primary: #FFEDE8;
+  --color-text-secondary: #C98A7C;
+  --color-accent: #FF5C4D;
+  --color-accent-hover: #FF8E84;
+  --color-accent-muted: #BB1E10;
+  --color-border: #3D1512;
+  --color-border-accent: rgba(255, 92, 77, 0.4);
 
-  --color-bg-card: #331128;
-  --color-border-card: #4B1F3C;
-  --color-border-subtle: #431734;
-  --color-bg-accent: #FF7A4D10;
-  --color-bg-accent-strong: #FF7A4D20;
+  --color-bg-card: #1E0A0A;
+  --color-border-card: #301414;
+  --color-border-subtle: #280C0C;
+  --color-bg-accent: #FF5C4D10;
+  --color-bg-accent-strong: #FF5C4D20;
 
-  --shadow-glow-accent: 0 0 24px rgba(255, 122, 77, 0.25);
-  --shadow-glow-accent-soft: 0 0 24px rgba(255, 122, 77, 0.1);
+  --shadow-glow-accent: 0 0 24px rgba(255, 92, 77, 0.25);
+  --shadow-glow-accent-soft: 0 0 24px rgba(255, 92, 77, 0.1);
 }
 
 :root[data-site-theme="night"] {
-  --color-bg-primary: #050A14;
-  --color-bg-secondary: #0A1424;
-  --color-bg-elevated: #0F1E33;
-  --color-text-primary: #EAF6FF;
-  --color-text-secondary: #8FB4D6;
-  --color-accent: #4FD8FF;
-  --color-accent-hover: #86E4FF;
-  --color-accent-muted: #1097BD;
-  --color-border: #1A3350;
-  --color-border-accent: rgba(79, 216, 255, 0.4);
+  --color-bg-primary: #030710;
+  --color-bg-secondary: #060E21;
+  --color-bg-elevated: #09142E;
+  --color-text-primary: #E8F5FF;
+  --color-text-secondary: #7FA8CC;
+  --color-accent: #3FCFFF;
+  --color-accent-hover: #76DDFF;
+  --color-accent-muted: #0F86AE;
+  --color-border: #142A45;
+  --color-border-accent: rgba(63, 207, 255, 0.4);
 
-  --color-bg-card: #0A1424;
-  --color-border-card: #152439;
-  --color-border-subtle: #0D1C31;
-  --color-bg-accent: #4FD8FF10;
-  --color-bg-accent-strong: #4FD8FF20;
+  --color-bg-card: #060E21;
+  --color-border-card: #0F1A34;
+  --color-border-subtle: #07122C;
+  --color-bg-accent: #3FCFFF10;
+  --color-bg-accent-strong: #3FCFFF20;
 
-  --shadow-glow-accent: 0 0 24px rgba(79, 216, 255, 0.25);
-  --shadow-glow-accent-soft: 0 0 24px rgba(79, 216, 255, 0.1);
+  --shadow-glow-accent: 0 0 24px rgba(63, 207, 255, 0.25);
+  --shadow-glow-accent-soft: 0 0 24px rgba(63, 207, 255, 0.1);
 }
 
 /* Sitewide color cross-fade: scoped strictly to color-only properties so it

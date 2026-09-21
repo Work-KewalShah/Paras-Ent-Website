@@ -252,3 +252,13 @@ confirmed composing correctly under two different non-Daytime themes at once. Th
 sitewide color cross-fade verified smooth via real frame-by-frame sampling, not just
 correct on paper. Lighthouse mobile Performance 89 (vs. Session 13's documented isolated
 baseline of 80), desktop 99/97/100/100 with CLS 0 — no regression.
+
+## Post-Session 14 note: site-wide palette redesign (5 of 6 themes)
+New finalized color values applied for Pre-dawn, Sunrise, Dusk, Sunset, and Night from
+design prototyping — Daytime untouched. Only 6 core values were newly specified per theme;
+every other token was re-derived using Session 14's established methods (now formally
+documented in `decisions.md`, including a newly-formalized `bgSecondary`/`bgElevated`
+derivation formula added to the standing method list for future themes). Verified via
+full-page screenshots (desktop + mobile) for all 5 changed themes, Daytime confirmed
+unchanged, Hindi + font-scale reconfirmed composing correctly under 2 of the changed
+themes, `tsc`/build clean, zero console errors throughout.
