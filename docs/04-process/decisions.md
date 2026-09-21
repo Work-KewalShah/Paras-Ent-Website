@@ -802,3 +802,66 @@ remain; `tsc`/build clean; both locales checked live — not just source-read �
 navigating the real running app, scrolling to the actual rendered DOM nodes, and reading
 real `textContent`/`innerHTML` for every fixed string; zero raw i18next key fallbacks
 found in either language's full page HTML; zero console errors in either locale.
+
+## Theme-specific ambient background layer for LightBurst
+Added a purely decorative ambient element behind the burst lines for all 6 themes — birds
+(Daytime), fading stars (Pre-dawn), rising dust motes (Sunrise), fireflies (Dusk), rising
+embers (Sunset), denser/brighter stars (Night). Per-theme config (`type`, `count`,
+`color`, plus `speed`/`minOpacity`/`maxOpacity` where relevant) lives directly on each
+`LightBurstTheme` object in `light-burst-themes.ts` as a new `ambient` field — one source
+of truth per theme, not a separate config file. Particle state is refs-only
+(`AmbientParticle[]`), matching the existing architecture exactly — no React state, no
+per-frame re-renders.
+
+**Regeneration without cross-effect coupling:** ambient particles need the canvas's
+current `cssWidth`/`cssHeight` to generate positions, but those only exist inside the
+effect that owns the RAF loop — the *other* effect (which reacts to `activeThemeIndex`
+changes) can't see them, and on mount it actually runs first, before real dimensions
+exist. Rather than adding a new cross-effect ref, regeneration is checked cheaply once
+per frame/redraw *inside* `loop()`/`redrawStatic()` themselves: compare
+`themeIndexRef.current` against `ambientThemeGeneratedForRef`, regenerate only on a
+mismatch. Reuses the exact "index-driven ref" pattern already established for the color
+system. `resizeCanvas()` also resets this ref, so ambient particles stay correctly
+proportioned after a real window resize.
+
+**Theme-switch behavior:** the particle set swaps *instantly* the moment the theme index
+changes — no cross-fade between particle types, since birds/stars/dust/fireflies/embers
+have no meaningful visual interpolation between each other. The existing 450ms *color*
+cross-fade for the burst lines/background is completely unaffected and runs independently.
+Verified this reads as clean, not jarring: captured the exact click-frame and confirmed
+the new theme's particles are already in their settled positions while the background
+color is still visibly mid-fade — the two systems compose without conflict.
+
+**Reduced motion:** stars render as a genuinely static field (fixed positions, fixed
+mid-range opacity, zero oscillation) since they're inherently static-by-nature even in the
+full animated mode. Birds/dust/embers/fireflies are skipped entirely rather than frozen
+mid-motion — freezing a mid-flight bird would read as a rendering glitch, not a design
+choice, matching this codebase's existing "zero animation of motion-implying elements"
+reduced-motion philosophy exactly.
+
+**Performance:** avoided `ctx.shadowBlur` for the glowing types (dust/embers/fireflies) —
+a meaningfully more expensive per-shape canvas operation — in favor of a cheap two-circle
+fake glow (larger low-alpha halo behind a smaller full-alpha core), both plain `arc()`+
+`fill()` calls.
+
+**Bug found and fixed during verification, not just assumed correct:** the bird silhouette
+was originally drawn with the curve's control point *above* the two endpoints, producing
+an upward-bowing arc/dome (⌒) — confirmed by cropping and zooming an actual rendered
+frame, not by reading the code. That's the opposite of the "V-shaped silhouette" the spec
+called for. Fixed by swapping the control point below the endpoints, producing the
+correct shallow "V"/checkmark shape (wingtips up, center dip) — reconfirmed the same way,
+by re-cropping a real rendered bird after the fix.
+
+**Verified:** all 6 themes screenshotted showing correct, visually distinct ambient
+elements. Bird speed confirmed via real pixel-cluster tracking across time-spaced frames
+(not just trusting the configured 0.4-0.6px/frame value) — measured ≈30-35px/sec,
+matching the configured range, meaning a full canvas crossing takes ≈40+ seconds,
+genuinely slow as directed. Reduced motion confirmed via `canvas.toDataURL()`
+byte-identity: Daytime stays byte-identical across 1.5s with zero birds ever drawn, Night
+stays byte-identical across 1.5s with stars visible but non-twinkling. Performance
+confirmed via measured RAF rate (~60fps) with Night's 55-star config active (the densest
+ambient configuration) — no measurable frame-budget impact — and `IntersectionObserver`
+pause/resume reconfirmed via the same byte-identity method established in Session 13/14,
+unaffected by the new ambient layer. `tsc`/build clean throughout; zero console errors in
+every scenario tested except the already-documented pre-existing reduced-motion
+hydration mismatch.
