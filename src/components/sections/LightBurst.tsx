@@ -10,6 +10,7 @@ import {
   DEFAULT_THEME_INDEX,
   type LightBurstIcon,
   type LightBurstTheme,
+  type AmbientConfig,
 } from '@/lib/content/light-burst-themes';
 
 const LINE_COUNT = 160;
@@ -205,6 +206,263 @@ interface Pulse {
   intensity: number;
 }
 
+// Theme-specific ambient background layer (birds/stars/dust/embers/fireflies),
+// rendered behind the burst lines. Purely decorative — reads pointer state
+// nowhere, never affects or is affected by the scatter physics above.
+const BIRD_MIN_SPEED = 0.4;
+const BIRD_MAX_SPEED = 0.6;
+const BIRD_MIN_WAIT_MS = 3000;
+const BIRD_WAIT_RANGE_MS = 6000;
+// Wing-flap: modulates the same control-point offset already used to draw
+// the static V-shape, so the "angle" of the wings oscillates over time —
+// horizontal drift speed above is completely unaffected.
+const BIRD_FLAP_PERIOD_MS = 800;
+const BIRD_FLAP_RATE = (2 * Math.PI) / BIRD_FLAP_PERIOD_MS;
+const BIRD_FLAP_MIN = 0.15;
+const BIRD_FLAP_MAX = 0.5;
+
+interface AmbientParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  phase: number; // twinkle/pulse timing offset
+  size: number; // radius, or wingspan for birds
+  life: number; // 0..1 lifecycle progress (dust/embers fade)
+  active: boolean; // birds: currently crossing vs waiting; unused otherwise
+  waitUntil: number; // birds: timestamp to resume crossing
+}
+
+function generateAmbientParticles(
+  config: AmbientConfig,
+  cssWidth: number,
+  cssHeight: number
+): AmbientParticle[] {
+  const particles: AmbientParticle[] = [];
+  for (let i = 0; i < config.count; i++) {
+    switch (config.type) {
+      case 'birds': {
+        const dir = Math.random() < 0.5 ? 1 : -1;
+        particles.push({
+          x: Math.random() * cssWidth,
+          y: 30 + Math.random() * (cssHeight * 0.35),
+          vx: dir * (BIRD_MIN_SPEED + Math.random() * (BIRD_MAX_SPEED - BIRD_MIN_SPEED)),
+          vy: 0,
+          phase: Math.random() * Math.PI * 2, // per-bird flap offset, so they don't flap in unison
+          size: 7 + Math.random() * 5,
+          life: 0,
+          active: Math.random() < 0.5,
+          waitUntil: 0,
+        });
+        break;
+      }
+      case 'stars': {
+        particles.push({
+          x: Math.random() * cssWidth,
+          y: Math.random() * cssHeight,
+          vx: 0,
+          vy: 0,
+          phase: Math.random() * Math.PI * 2,
+          size: 0.8 + Math.random() * 1.4,
+          life: 0,
+          active: true,
+          waitUntil: 0,
+        });
+        break;
+      }
+      case 'dust':
+      case 'embers': {
+        particles.push({
+          x: Math.random() * cssWidth,
+          y: cssHeight * Math.random(),
+          vx: (Math.random() - 0.5) * 0.15,
+          vy: -(config.speed ?? 0.3) * (0.75 + Math.random() * 0.5),
+          phase: 0,
+          size: 1.2 + Math.random() * 1.6,
+          life: Math.random(),
+          active: true,
+          waitUntil: 0,
+        });
+        break;
+      }
+      case 'fireflies': {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = config.speed ?? 0.18;
+        particles.push({
+          x: Math.random() * cssWidth,
+          y: Math.random() * cssHeight,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          phase: Math.random() * Math.PI * 2,
+          size: 1.5 + Math.random() * 1.3,
+          life: 0,
+          active: true,
+          waitUntil: 0,
+        });
+        break;
+      }
+    }
+  }
+  return particles;
+}
+
+function updateAmbientParticles(
+  particles: AmbientParticle[],
+  config: AmbientConfig,
+  cssWidth: number,
+  cssHeight: number,
+  timestamp: number
+) {
+  for (const p of particles) {
+    switch (config.type) {
+      case 'birds': {
+        if (!p.active) {
+          if (timestamp >= p.waitUntil) {
+            const dir = Math.random() < 0.5 ? 1 : -1;
+            p.active = true;
+            p.vx = dir * (BIRD_MIN_SPEED + Math.random() * (BIRD_MAX_SPEED - BIRD_MIN_SPEED));
+            p.x = dir > 0 ? -20 : cssWidth + 20;
+            p.y = 30 + Math.random() * (cssHeight * 0.35);
+          }
+          break;
+        }
+        p.x += p.vx;
+        if (p.x < -30 || p.x > cssWidth + 30) {
+          p.active = false;
+          p.waitUntil = timestamp + BIRD_MIN_WAIT_MS + Math.random() * BIRD_WAIT_RANGE_MS;
+        }
+        break;
+      }
+      case 'stars':
+        break; // static position; opacity computed at draw time from timestamp
+      case 'dust':
+      case 'embers': {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life += 0.0022 * ((config.speed ?? 0.3) / 0.3);
+        if (p.life >= 1 || p.y < -10) {
+          p.life = 0;
+          p.y = cssHeight + 10;
+          p.x = Math.random() * cssWidth;
+          p.vx = (Math.random() - 0.5) * 0.15;
+        }
+        break;
+      }
+      case 'fireflies': {
+        if (Math.random() < 0.01) {
+          p.vx += (Math.random() - 0.5) * 0.08;
+          p.vy += (Math.random() - 0.5) * 0.08;
+          const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          const maxSpeed = (config.speed ?? 0.18) * 1.6;
+          if (speed > maxSpeed) {
+            p.vx = (p.vx / speed) * maxSpeed;
+            p.vy = (p.vy / speed) * maxSpeed;
+          }
+        }
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > cssWidth) p.vx *= -1;
+        if (p.y < 0 || p.y > cssHeight) p.vy *= -1;
+        p.x = Math.max(0, Math.min(cssWidth, p.x));
+        p.y = Math.max(0, Math.min(cssHeight, p.y));
+        break;
+      }
+    }
+  }
+}
+
+function drawAmbientParticles(
+  ctx: CanvasRenderingContext2D,
+  particles: AmbientParticle[],
+  config: AmbientConfig,
+  timestamp?: number
+) {
+  // Reduced motion: stars stay static (fixed mid-twinkle opacity, handled
+  // below via the timestamp-undefined branch); motion-based ambient types
+  // are skipped entirely rather than frozen mid-flight/mid-drift.
+  if (config.type !== 'stars' && timestamp === undefined) return;
+
+  for (const p of particles) {
+    switch (config.type) {
+      case 'stars': {
+        const minOp = config.minOpacity ?? 0.2;
+        const maxOp = config.maxOpacity ?? 0.6;
+        const opacity =
+          timestamp === undefined
+            ? (minOp + maxOp) / 2
+            : minOp + (maxOp - minOp) * (0.5 + 0.5 * Math.sin(p.phase + timestamp * 0.0006));
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = config.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+      case 'birds': {
+        if (!p.active) break;
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = config.color;
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        const dir = p.vx >= 0 ? 1 : -1;
+        // Wing-flap: oscillates how far the center vertex drops below the
+        // wingtips (shallow = wings up, deep = wings down), independent of
+        // the horizontal drift speed above.
+        const flap =
+          BIRD_FLAP_MIN +
+          (BIRD_FLAP_MAX - BIRD_FLAP_MIN) * (0.5 + 0.5 * Math.sin(p.phase + timestamp! * BIRD_FLAP_RATE));
+        // V-shaped silhouette: two straight strokes from a shared center
+        // vertex up to each wingtip. A single quadraticCurveTo across both
+        // wings (the previous approach) is mathematically a smooth curve
+        // with no corner anywhere along it — tuning the control point only
+        // changes how deep/rounded that curve is, never produces an actual
+        // angular point. Two lineTo segments meeting at one vertex do —
+        // confirmed by zooming an actual rendered frame, not just in theory.
+        ctx.beginPath();
+        ctx.moveTo(p.x - p.size * dir, p.y - p.size * 0.35);
+        ctx.lineTo(p.x, p.y + p.size * flap);
+        ctx.lineTo(p.x + p.size * dir, p.y - p.size * 0.35);
+        ctx.stroke();
+        break;
+      }
+      case 'dust':
+      case 'embers': {
+        const fadeIn = Math.min(1, p.life / 0.15);
+        const fadeOut = Math.min(1, (1 - p.life) / 0.25);
+        const opacity = Math.max(0, Math.min(fadeIn, fadeOut)) * 0.8;
+        ctx.fillStyle = config.color;
+        // Cheap fake glow: a larger, low-alpha halo behind a smaller, normal
+        // -alpha core — avoids ctx.shadowBlur, which is meaningfully more
+        // expensive per-shape and adds up across ~24 particles/frame.
+        ctx.globalAlpha = opacity * 0.25;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = opacity;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+      case 'fireflies': {
+        const pulseOpacity = 0.25 + 0.5 * (0.5 + 0.5 * Math.sin(p.phase + timestamp! * 0.003));
+        ctx.fillStyle = config.color;
+        ctx.globalAlpha = pulseOpacity * 0.3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = pulseOpacity;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 function updateLines(
   lines: LineState[],
   pointer: PointerState,
@@ -250,7 +508,9 @@ function drawFrame(
   lines: LineState[],
   colors: ResolvedColors,
   timestamp?: number,
-  pulse?: Pulse | null
+  pulse?: Pulse | null,
+  ambientParticles?: AmbientParticle[],
+  ambientConfig?: AmbientConfig
 ) {
   ctx.clearRect(0, 0, cssWidth, cssHeight);
 
@@ -259,6 +519,10 @@ function drawFrame(
   gradient.addColorStop(1, colors.bgBottom);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+  if (ambientParticles && ambientConfig) {
+    drawAmbientParticles(ctx, ambientParticles, ambientConfig, timestamp);
+  }
 
   const baseX = cssWidth / 2;
   const baseY = cssHeight;
@@ -323,6 +587,8 @@ export const LightBurst = () => {
   const heldRef = useRef(false);
   const activePointerIdRef = useRef<number | null>(null);
   const pulseRef = useRef<{ x: number; y: number; startTime: number } | null>(null);
+  const ambientParticlesRef = useRef<AmbientParticle[]>([]);
+  const ambientThemeGeneratedForRef = useRef<number | null>(null);
 
   useEffect(() => {
     themeIndexRef.current = activeThemeIndex;
@@ -369,8 +635,27 @@ export const LightBurst = () => {
       canvas!.width = cssWidth * dpr;
       canvas!.height = cssHeight * dpr;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Ambient particle positions are absolute pixels tied to the canvas
+      // size at generation time — force a cheap regeneration on the next
+      // draw so they stay correctly proportioned after a real resize.
+      ambientThemeGeneratedForRef.current = null;
     }
     resizeCanvas();
+
+    // Regenerates ambient particles only when the theme actually changed
+    // since they were last generated (or after a resize, see above) — cheap
+    // per-frame check, avoids needing cross-effect access to cssWidth/
+    // cssHeight from the theme-change effect above.
+    function ensureAmbientParticles() {
+      if (ambientThemeGeneratedForRef.current !== themeIndexRef.current) {
+        ambientParticlesRef.current = generateAmbientParticles(
+          lightBurstThemes[themeIndexRef.current].ambient,
+          cssWidth,
+          cssHeight
+        );
+        ambientThemeGeneratedForRef.current = themeIndexRef.current;
+      }
+    }
 
     // Touch-hold-then-drag scroll-block gesture (Session 16 exception to the
     // Session 13 "touch must never block scroll" rule — see decisions.md).
@@ -455,7 +740,18 @@ export const LightBurst = () => {
       // except the hold-gesture listeners (scroll-block still applies; pulse
       // cue is skipped since there's no RAF loop to animate it).
       const redrawStatic = () => {
-        drawFrame(ctx, cssWidth, cssHeight, lines, lightBurstThemes[themeIndexRef.current]);
+        ensureAmbientParticles();
+        drawFrame(
+          ctx,
+          cssWidth,
+          cssHeight,
+          lines,
+          lightBurstThemes[themeIndexRef.current],
+          undefined,
+          undefined,
+          ambientParticlesRef.current,
+          lightBurstThemes[themeIndexRef.current].ambient
+        );
       };
       redrawStaticRef.current = redrawStatic;
       redrawStatic();
@@ -517,8 +813,22 @@ export const LightBurst = () => {
         }
       }
 
+      ensureAmbientParticles();
+      const ambientConfig = lightBurstThemes[themeIndexRef.current].ambient;
+      updateAmbientParticles(ambientParticlesRef.current, ambientConfig, cssWidth, cssHeight, timestamp);
+
       updateLines(lines, pointerRef.current, cssWidth, cssHeight, timestamp);
-      drawFrame(ctx!, cssWidth, cssHeight, lines, toResolvedColors(currentColorsRGBRef.current), timestamp, pulse);
+      drawFrame(
+        ctx!,
+        cssWidth,
+        cssHeight,
+        lines,
+        toResolvedColors(currentColorsRGBRef.current),
+        timestamp,
+        pulse,
+        ambientParticlesRef.current,
+        ambientConfig
+      );
       rafId = requestAnimationFrame(loop);
     }
 

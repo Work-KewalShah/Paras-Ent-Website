@@ -802,3 +802,154 @@ remain; `tsc`/build clean; both locales checked live — not just source-read �
 navigating the real running app, scrolling to the actual rendered DOM nodes, and reading
 real `textContent`/`innerHTML` for every fixed string; zero raw i18next key fallbacks
 found in either language's full page HTML; zero console errors in either locale.
+
+## Theme-specific ambient background layer for LightBurst
+Added a purely decorative ambient element behind the burst lines for all 6 themes — birds
+(Daytime), fading stars (Pre-dawn), rising dust motes (Sunrise), fireflies (Dusk), rising
+embers (Sunset), denser/brighter stars (Night). Per-theme config (`type`, `count`,
+`color`, plus `speed`/`minOpacity`/`maxOpacity` where relevant) lives directly on each
+`LightBurstTheme` object in `light-burst-themes.ts` as a new `ambient` field — one source
+of truth per theme, not a separate config file. Particle state is refs-only
+(`AmbientParticle[]`), matching the existing architecture exactly — no React state, no
+per-frame re-renders.
+
+**Regeneration without cross-effect coupling:** ambient particles need the canvas's
+current `cssWidth`/`cssHeight` to generate positions, but those only exist inside the
+effect that owns the RAF loop — the *other* effect (which reacts to `activeThemeIndex`
+changes) can't see them, and on mount it actually runs first, before real dimensions
+exist. Rather than adding a new cross-effect ref, regeneration is checked cheaply once
+per frame/redraw *inside* `loop()`/`redrawStatic()` themselves: compare
+`themeIndexRef.current` against `ambientThemeGeneratedForRef`, regenerate only on a
+mismatch. Reuses the exact "index-driven ref" pattern already established for the color
+system. `resizeCanvas()` also resets this ref, so ambient particles stay correctly
+proportioned after a real window resize.
+
+**Theme-switch behavior:** the particle set swaps *instantly* the moment the theme index
+changes — no cross-fade between particle types, since birds/stars/dust/fireflies/embers
+have no meaningful visual interpolation between each other. The existing 450ms *color*
+cross-fade for the burst lines/background is completely unaffected and runs independently.
+Verified this reads as clean, not jarring: captured the exact click-frame and confirmed
+the new theme's particles are already in their settled positions while the background
+color is still visibly mid-fade — the two systems compose without conflict.
+
+**Reduced motion:** stars render as a genuinely static field (fixed positions, fixed
+mid-range opacity, zero oscillation) since they're inherently static-by-nature even in the
+full animated mode. Birds/dust/embers/fireflies are skipped entirely rather than frozen
+mid-motion — freezing a mid-flight bird would read as a rendering glitch, not a design
+choice, matching this codebase's existing "zero animation of motion-implying elements"
+reduced-motion philosophy exactly.
+
+**Performance:** avoided `ctx.shadowBlur` for the glowing types (dust/embers/fireflies) —
+a meaningfully more expensive per-shape canvas operation — in favor of a cheap two-circle
+fake glow (larger low-alpha halo behind a smaller full-alpha core), both plain `arc()`+
+`fill()` calls.
+
+**Bug found and fixed during verification, not just assumed correct:** the bird silhouette
+was originally drawn with the curve's control point *above* the two endpoints, producing
+an upward-bowing arc/dome (⌒) — confirmed by cropping and zooming an actual rendered
+frame, not by reading the code. That's the opposite of the "V-shaped silhouette" the spec
+called for. Fixed by swapping the control point below the endpoints, producing the
+correct shallow "V"/checkmark shape (wingtips up, center dip) — reconfirmed the same way,
+by re-cropping a real rendered bird after the fix.
+
+**Verified:** all 6 themes screenshotted showing correct, visually distinct ambient
+elements. Bird speed confirmed via real pixel-cluster tracking across time-spaced frames
+(not just trusting the configured 0.4-0.6px/frame value) — measured ≈30-35px/sec,
+matching the configured range, meaning a full canvas crossing takes ≈40+ seconds,
+genuinely slow as directed. Reduced motion confirmed via `canvas.toDataURL()`
+byte-identity: Daytime stays byte-identical across 1.5s with zero birds ever drawn, Night
+stays byte-identical across 1.5s with stars visible but non-twinkling. Performance
+confirmed via measured RAF rate (~60fps) with Night's 55-star config active (the densest
+ambient configuration) — no measurable frame-budget impact — and `IntersectionObserver`
+pause/resume reconfirmed via the same byte-identity method established in Session 13/14,
+unaffected by the new ambient layer. `tsc`/build clean throughout; zero console errors in
+every scenario tested except the already-documented pre-existing reduced-motion
+hydration mismatch.
+
+## Ambient-layer follow-up: bird color, wing-flap, star twinkle amplitude
+Three fixes from a real screenshot review of the ambient layer above, each confirmed with
+measured/rendered evidence rather than trusting the config values alone:
+
+**Bird color** changed from `#14253D` (read as flat black) to `#4A5A72` (muted
+slate-blue-gray) — confirmed in context by rendering an actual bird against the real
+Daytime gradient and cropping/zooming the result before locking it in, not just picking a
+hex value theoretically.
+
+**Star twinkle amplitude was measurably too wide**, confirmed by sampling real rendered
+pixel brightness (not the configured opacity values) every 500ms for several seconds:
+Pre-dawn swung 150→246 (1.64x) and Night 288→646 (2.24x) — a genuine pulse, not a
+shimmer. Narrowed both ranges (Pre-dawn `0.1–0.35` → `0.16–0.24`; Night `0.3–0.85` →
+`0.5–0.75`, both landing at a consistent ~1.5x ratio while keeping Night meaningfully
+brighter overall) and re-measured the same way post-fix: Pre-dawn now swings 187→224
+(1.20x), Night 445→592 (1.33x) — both substantially gentler, confirmed by the same
+pixel-sampling method, not just smaller numbers on paper. Oscillation rate (~10.5s per
+cycle) was untouched, since the amplitude was the actual problem.
+
+**Wing-flap animation** added by modulating the same control-point offset already used to
+draw the static V-shape — `sin(phase + timestamp * flapRate)` oscillates how far the
+control point dips below the wingtips (shallow = wings up, deep = wings down), each bird
+given a randomized phase offset so the three don't flap in unison. 800ms per flap cycle.
+Horizontal drift speed is completely unaffected — confirmed by cropping the same fixed
+canvas region across a sequence of 140ms-apart frames and visually confirming the wing
+angle genuinely changes (shallow dip → deeper dip) frame to frame, not just that the
+formula exists in code.
+
+**Verified:** all 6 themes reconfirmed rendering correctly with zero console errors;
+reduced motion reconfirmed via `canvas.toDataURL()` byte-identity for both Daytime
+(birds still fully skipped) and Night (stars still static) — the flap/twinkle changes
+don't touch the reduced-motion code paths at all. `tsc`/build clean.
+
+## Bird shape: real root cause, not a re-application of the same failed fix
+The "V-shaped silhouette" fix above was reported fixed and reconfirmed, and still wasn't
+— a second round of direct visual inspection (10x nearest-neighbor zoom crops of actual
+rendered frames, not a glance at a normal screenshot) showed a smooth, continuous,
+rounded curve with no corner anywhere along it, i.e. a "U"/smile shape. Root cause: the
+birds were drawn with a single `quadraticCurveTo` spanning both wings. A quadratic Bézier
+is mathematically one smooth curve — tuning the control point's position can only change
+how deep or shallow that curve dips, it can never introduce an actual angular vertex. The
+earlier fix had flipped which direction the smooth curve bowed (up vs. down), which is
+why it still read as an arc regardless of "control point tuning" — the control point was
+never the actual problem.
+
+**Real fix:** replaced the single curve with two straight `lineTo` segments from a shared
+center vertex up to each wingtip (`moveTo(leftTip) → lineTo(center) → lineTo(rightTip)`),
+with `lineJoin: 'round'` to soften the corner slightly at the pixel level without losing
+the angular point. The wing-flap animation maps onto this the same way as before —
+modulating how far the center vertex drops relative to the wingtips.
+
+**Bird color** changed again, `#4A5A72` → `#F0F0F5` (near-white) — a judgment call by
+Kewal after seeing the muted slate-blue-gray in practice, not a reversal of the earlier
+contrast reasoning; confirmed the white still reads as a soft silhouette rather than a
+harsh cutout, the same way the previous color was confirmed.
+
+**Verified — both fixes tested in context before being proposed, not asserted from
+theory**: temporarily applied both changes, rebuilt, and captured fresh zoomed crops of
+actual rendered frames before writing up a plan — the shape crop showed a genuine angular
+"V" with a real corner, the color crop showed a visible, soft near-white silhouette
+against the Daytime gradient in both a tight zoom and full-canvas context. Only after
+that evidence was in hand were the changes proposed, then reverted pending approval, then
+re-applied and re-verified identically once approved. Final re-verification: all 6 themes
+render with zero console errors, reduced motion unaffected (same byte-identity checks as
+above), `tsc`/build clean.
+
+## Star twinkle: amplitude overcorrection, not a regression
+Reported as "not twinkling." Re-measured with the same real pixel-brightness sampling
+method used to find the original too-strong-pulse problem: the oscillation mechanism was
+confirmed genuinely functioning (brightness changed smoothly and continuously over
+repeated samples, ruling out a broken calculation, a stuck phase, or timestamp not
+reaching the draw call) — but the amplitude fix from the previous round had swung too far
+the other way. Measured ratios landed at 1.20x (Pre-dawn) and 1.39x (Night), against a
+too-strong original of 3.5x/2.83x — real but plausibly imperceptible at the stars' small
+size (0.8–2.2px radius) in casual viewing.
+
+**Fix:** widened both ranges to a real middle ground — Pre-dawn `0.16–0.24` → `0.12–0.32`,
+Night `0.5–0.75` → `0.4–0.82` — landing around 1.7-1.8x, roughly the geometric midpoint
+between the two extremes. Tested in context before proposing: temporarily applied,
+rebuilt, and both pixel-sampled *and* screenshotted a real 2-second-interval sequence
+showing individual stars visibly brightening/dimming, not just wider numbers on paper.
+Reverted pending approval, then re-applied and re-verified identically once approved.
+
+**Verified:** re-measured post-fix at 1.43x (Pre-dawn) and 1.66x (Night) — consistent with
+the tested values; all 6 themes reconfirmed rendering with zero console errors; reduced
+motion reconfirmed unaffected (same byte-identity checks as above — Daytime birds still
+fully skipped, Night stars still static); `tsc`/build clean.
