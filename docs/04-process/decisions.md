@@ -603,3 +603,59 @@ confirmed on desktop; Hindi + font-scale confirmed working through the *new* des
 controls specifically; anchor-link scroll confirmed clearing the shorter header via a real
 `.click()` (a scripted `location.hash` assignment was tried first and gave a misleading
 result); `tsc`/build clean throughout both increments.
+
+## Post-Session 15 bug: dev-only stale i18next singleton on the "Themes" nav link
+After adding the "Themes" nav link, a real hydration mismatch appeared (server rendered
+the raw key `navbar.links.themes`, client rendered `Themes`) — a genuine regression, not
+the already-documented sitewide `useReducedMotion()` mismatch from Session 11. Root cause
+found and reproduced directly, not guessed at:
+
+`en.json`/`hi.json` were structurally correct (confirmed: `themes` sits at the identical
+nesting depth as every other `navbar.links.*` key, present in both locale files, no typo).
+A fresh production build (`npm run build && npm run start`) resolved the key correctly on
+every request, including immediately after a cold restart — ruling out the JSON content
+itself and ruling out a general SSR/i18next-readiness race (which would have affected
+every key, not just this one). The actual cause: a separate, long-running `next dev`
+server (PID 21788) had been running on port 3000 since well before the "Themes" key was
+added, and was never restarted. Curling it directly reproduced the exact bug.
+
+**Mechanism:** `src/lib/i18n/config.ts` initializes i18next once, guarded by
+`if (!i18next.isInitialized)`. The `i18next` package itself is a long-lived singleton from
+`node_modules`, which Next.js dev-mode HMR does not reset — only this project's own source
+files (including `en.json`/`hi.json`) get invalidated and re-imported fresh on each edit.
+So `isInitialized` stays `true` across HMR passes within the same dev-server process,
+meaning the `!isInitialized` branch — the only place resources ever get loaded into the
+live instance — runs exactly once per process, at whatever point the dev server first
+started. Any key added or changed after that point never reaches the live singleton until
+a full restart. Every key that existed before that dev server started (`products`,
+`process`, `caseStudies`, `whyUs`, `contact`) resolved fine; `themes`, added afterward,
+never did. The client side doesn't share this problem — the browser fetches a freshly
+compiled client bundle reflecting current file content on each load, so it always
+resolves correctly, which is exactly why server and client disagreed.
+
+Confirmed **not a production risk**: a real deployment starts a fresh process per release,
+so the `!isInitialized` branch always runs exactly once with current content — verified via
+a clean production build/restart resolving correctly on every request tested.
+
+**Fix — both the immediate bug and the underlying class of bug:**
+1. Killed the stale dev server (PID 21788) and restarted fresh — immediately resolved the
+   reported instance. Verified via direct `curl` of the SSR HTML: `Themes` renders
+   correctly, not the raw key.
+2. Hardened `config.ts` so this can't recur for any future key added mid dev-session:
+   added an `else if (process.env.NODE_ENV === 'development')` branch that calls
+   `i18next.addResourceBundle('en'/'hi', 'translation', en/hi, true, true)` (deep merge,
+   overwrite) on every module re-evaluation once already initialized — syncing the live
+   instance to current file content instead of leaving it frozen. Production takes the
+   original `!isInitialized` fast path unchanged; the new branch is dead-code-eliminated
+   entirely from the production bundle (`process.env.NODE_ENV` is statically `'production'`
+   at build time) — confirmed directly by grepping the built server bundle for the new
+   `addResourceBundle('en'` call site, which is absent, while the original `isInitialized`
+   guard is still present.
+
+**Verified the hardening actually works, not just that a restart fixed the symptom:**
+without restarting the dev server, temporarily changed `"themes": "Themes"` to
+`"themes": "Themes-HMRTEST"` — the live SSR output picked up the new value on the very
+next request with no restart. Reverted the same way, confirmed it tracked back correctly,
+and confirmed `git diff` showed zero residual change afterward. All 5 other nav keys
+re-checked and still resolve correctly (no regression from the new branch). Zero console
+errors in a real browser load against the dev server.
