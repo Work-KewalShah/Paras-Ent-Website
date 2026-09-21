@@ -404,3 +404,11 @@ Verified via direct canvas pixel sampling (`ctx.getImageData()` at the gradient'
 bottom, not just visual inspection) that all 6 themes render the exact specified hex
 values, and that Daytime is pixel-identical to its pre-existing values. Confirmed no
 leftover old hex values anywhere in the codebase via grep.
+
+## Post-Session 13 note: LightBurst theme transition cross-fade
+LightBurst theme transitions now cross-fade smoothly (450ms linear interpolation) instead
+of switching instantly, verified via real pixel sampling at multiple points in the
+transition. Two pre-existing bugs found and fixed along the way: under reduced motion,
+theme clicks and window resizes never triggered a redraw (canvas only painted once on
+initial mount) — both now correctly redraw via the same mechanism the transition logic
+required.
