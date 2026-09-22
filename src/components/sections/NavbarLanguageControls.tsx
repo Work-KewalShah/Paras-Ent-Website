@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useFontScale } from '@/components/providers/FontScaleProvider';
 
 const TRACK_CLASSES =
-  'flex items-center justify-center gap-1 rounded-sm bg-[var(--color-bg-primary,#0A0A0A)] p-0.5';
+  'flex items-center justify-center gap-1 rounded-none bg-[var(--color-bg-primary,#0A0A0A)] p-0.5';
 
 // Compact desktop-only equivalent of LanguageBar's 44x44 tap-target overlay.
 // -6px inset + gap-1.5 (6px) between the two stacked tracks means each
@@ -21,7 +21,7 @@ const OUTER_CLASSES =
 // to the language track: "English"/"Hindi" need their own natural width.
 const FONT_BUTTON_CLASSES = cn(OUTER_CLASSES, 'w-8');
 
-const INNER_BASE = 'flex items-center justify-center rounded-sm px-1.5 py-0.5 text-xs transition-colors';
+const INNER_BASE = 'flex items-center justify-center rounded-none px-1.5 py-0.5 text-xs transition-colors';
 
 const INNER_ACTIVE = cn(INNER_BASE, 'bg-accent text-bg-primary font-semibold');
 const INNER_INACTIVE = cn(INNER_BASE, 'bg-transparent text-text-muted group-hover:text-text-secondary');
